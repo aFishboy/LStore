@@ -111,7 +111,17 @@ class Query:
     # Returns False if no record exists in the given range
     """
     def sum(self, start_range, end_range, aggregate_column_index):
-        pass
+        total_sum = 0
+        try:
+            for record in self.table.data:
+                # Assuming primary key is the first column
+                primary_key = record[0]  
+                if start_range <= primary_key <= end_range:
+                    total_sum += record[aggregate_column_index]
+            return total_sum
+        except Exception as e:
+            print(f"Error during sum operation: {e}")
+            return False
 
     
     """

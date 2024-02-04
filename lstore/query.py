@@ -35,13 +35,8 @@ class Query:
             if len(columns) != self.table.num_columns:
                 print("Error: Number of values does not match the number columns.")
                 return False
-
-            new_record = {}
-            column_indices = list(range(self.table.num_columns))
-            for i in column_indices:
-                new_record[i] = columns[i]
-
-            #self.table.page_directory.append(new_record)  FIX ME
+            
+            self.table.data.append(columns) #does data need to be a dictionary
 
             print("Data inserted successfully!")
             return True

@@ -2,9 +2,9 @@
     "cSpell.words": [
         "lstore"
     ],
-    "python.testing.pytestArgs": [
-        "lstore"
-    ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "--capture=no"
+    ]
 }

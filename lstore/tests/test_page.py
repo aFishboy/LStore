@@ -1,6 +1,6 @@
 import pytest
-from lstore.page import Page
-from lstore.config import *
+from ..page import Page
+from ..config import *
 
 class TestPage:
 

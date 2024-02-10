@@ -17,7 +17,6 @@ class Page:
             raise IndexError("Attempted to write outside page")
         bytes_to_write = value_to_write.to_bytes(COLUMN_DATA_SIZE, byteorder='little')
         self.data[write_offset:write_offset + COLUMN_DATA_SIZE] = bytes_to_write
-        self.num_records += 1
 
     def read(self, read_offset) -> int:
         adjusted_read_offset = read_offset * COLUMN_DATA_SIZE
@@ -38,3 +37,6 @@ class Page:
             raise IndexError("Attempted to access beyond the bounds of the data buffer")
         if offset >= self.num_records:
             raise IndexError("Attempted to access  an offset with no written data")
+    
+    def increment_record_count(self):
+        self.num_records += 1

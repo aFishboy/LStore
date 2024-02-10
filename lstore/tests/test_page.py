@@ -23,6 +23,7 @@ class TestPage:
         page = Page()
         for i in range(10):
             page.write(i)
+            page.increment_record_count()
         assert page.current_offset() == 80
 
     # can handle writing to a full page
@@ -30,6 +31,7 @@ class TestPage:
         page = Page()
         for i in range(page.MAX_RECORDS_PER_PAGE):
             page.write(i)
+            page.increment_record_count()
         assert page.has_capacity() == False
         assert page.current_offset() == 4096
 
@@ -57,9 +59,11 @@ class TestPage:
     def test_write_record(self):
         page = Page()
         page.write(10)
+        page.increment_record_count()
         assert page.num_records == 1
         assert page.data[:COLUMN_DATA_SIZE * page.num_records] == b'\x0A\x00\x00\x00\x00\x00\x00\x00'
         page.write(34550)
+        page.increment_record_count()    
         assert page.num_records == 2
         assert page.data[COLUMN_DATA_SIZE * (page.num_records - 1):COLUMN_DATA_SIZE * page.num_records] == b'\xF6\x86\x00\x00\x00\x00\x00\x00'
 
@@ -67,13 +71,16 @@ class TestPage:
     def test_read_record(self):
         page = Page()
         page.write(10)
+        page.increment_record_count()
         assert page.read(0) == 10
         page.write(19923940)
+        page.increment_record_count()
         assert page.read(1) == 19923940
 
     # can update an existing record on the page
     def test_update_record(self):
         page = Page()
         page.write(10)
+        page.increment_record_count()
         page.update_entry(0, 20)
         assert page.read(0) == 20

@@ -35,8 +35,9 @@ class Query:
             if len(columns) != self.table.num_columns:
                 print("Error: Number of values does not match the number columns.")
                 return False
-            
-            self.table.data.append(columns) #does data need to be a dictionary
+            self.table.insert_record(*columns)
+
+            ##self.table.data.append(columns) #does data need to be a dictionary
 
             print("Data inserted successfully!")
             return True

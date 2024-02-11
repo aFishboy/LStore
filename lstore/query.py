@@ -63,8 +63,9 @@ class Query:
                 arr.append(i)
         projected_columns_index = arr
         baseRecord_RID = self.table.index.locate(search_key_index, search_key)
-        selected_record = self.table.read(baseRecord_RID, projected_columns_index)
-
+        #selected_record = self.table.read(baseRecord_RID, projected_columns_index)
+        # need to fix table.read, add it
+        selected_record = {}
         return selected_record
         
    

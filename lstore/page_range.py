@@ -29,7 +29,7 @@ class PageRange:
         # add the record values to pages
         for i in range(self.num_columns):
             page[i].write(columns[i], self.last_base_offset)
-        page.increment_record_count()
+            page[i].increment_record_count() # may need to be on the outside of for loop and only happen once idk
         # add RID
         page[self.num_columns].write(rid, self.last_base_offset)
         # add indirection

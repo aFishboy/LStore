@@ -134,7 +134,18 @@ class Query:
     # Returns False if no record exists in the given range
     """
     def sum_version(self, start_range, end_range, aggregate_column_index, relative_version):
-        pass
+        summation = 0
+        for record_index in range(start_range, end_range + 1):
+            try:
+                value = self.read_version(record_index, relative_version, aggregate_column_index)
+                summation += value 
+            except IndexError:
+                continue
+        
+        if summation == 0:
+            return False 
+        else:
+            return summation
 
     
     """

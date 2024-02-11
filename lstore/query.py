@@ -57,8 +57,8 @@ class Query:
     # Assume that select will never be called on a key that doesn't exist
     """
     # search key is what we are looking for for example a name
-    # search key index is the column it is in
-    #projected_columns_index is what columns we want to return of the record if / when we find i think
+    # search key index is the column it would be in for example if it is a name it would be in the name column 
+    # projected_columns_index is what columns we want to return of the record if / when we find i think
     def select(self, search_key, search_key_index, projected_columns_index):
         arr = []
         for i in range(len(projected_columns_index)):

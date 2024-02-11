@@ -57,13 +57,15 @@ class Query:
     # Assume that select will never be called on a key that doesn't exist
     """
     def select(self, search_key, search_key_index, projected_columns_index):
-        selected_records = []
-        for record in self.records:
-            if record[search_key_index] == search_key:
-                selected_record = [record[i] for i in range(len(record)) if projected_columns_index[i] == 1]
-                selected_records.append(selected_record)
+        arr = []
+        for i in range(len(projected_columns_index)):
+            if projected_columns_index[i] == 1:
+                arr.append(i)
+        projected_columns_index = arr
+        baseRecord_RID = self.table.index.locate(search_key_index, search_key)
+        selected_record = self.table.read(baseRecord_RID, projected_columns_index)
 
-        return selected_records
+        return selected_record
         
    
 

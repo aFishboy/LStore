@@ -41,7 +41,15 @@ class Table:
         else:
             self.page_ranges.append(PageRange(self, self.num_columns))
             total_page_ranges += 1
-         
+
+    def update_record(self, primary_key, *columns):
+        pass
+
+    def read_record(self, rid, query_columns):
+        pass
+
+    def delete_record(self, key):
+        pass
 
     def generate_rid(self):
         self.last_rid += 1

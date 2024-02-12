@@ -37,8 +37,6 @@ class Query:
                 return False
             self.table.insert_record(*columns)
 
-            ##self.table.data.append(columns) #does data need to be a dictionary
-
             print("Data inserted successfully!")
             return True
         
@@ -103,10 +101,21 @@ class Query:
     """
     # Update a record with specified key and columns
     # Returns True if update is succesful
+    # :param search_key: the value you want to search based on (same as search_key in select)
     # Returns False if no records exist with given key or if the target record cannot be accessed due to 2PL locking
     """
-    def update(self, primary_key, *columns):
-        pass
+    #def update(self, primary_key, *columns):
+    def update(self, search_key, search_key_index, projected_columns_index):
+        arr = []
+        for i in range(len(projected_columns_index)):
+            if projected_columns_index[i] == 1:
+                arr.append(i)
+        projected_columns_index = arr
+        baseRecord_RID = self.table.index.locate(search_key_index, search_key)
+        #selected_record = self.table.read(baseRecord_RID, projected_columns_index)
+        selected_record = {}
+        updated_record = self.table.update_record(selected_record)
+        return updated_record
 
     
     """

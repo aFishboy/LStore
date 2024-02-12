@@ -28,8 +28,9 @@ class Table:
         self.num_columns = num_columns
         self.data = []
         self.index = Index(self)
-        self.page_ranges = []
+        self.page_ranges = [] 
         self.last_rid = -1
+        self.page_directory = {} # maps RID to tuple, (What page_range, what record location in page) 
         pass
 
     def insert_record(self, *columns):
@@ -41,6 +42,10 @@ class Table:
         else:
             self.page_ranges.append(PageRange(self, self.num_columns))
             total_page_ranges += 1
+            self.page_ranges[-1].addNewRecord(new_rid, *columns)
+
+        self.page_directory[new_rid] = (total_page_ranges - 1, len(self.page_ranges[-1].base_pages) - 1) #location of record. What page range and which page block in that range
+        
 
     def update_record(self, primary_key, *columns):
         if not self.record_exists(primary_key):

@@ -1,3 +1,4 @@
+import uuid
 from .config import *
 class Page:
     def __init__(self):
@@ -20,7 +21,7 @@ class Page:
         bytes_to_write = value_to_write.to_bytes(COLUMN_DATA_SIZE, byteorder='little')
         self.data[write_offset:write_offset + COLUMN_DATA_SIZE] = bytes_to_write
         self.record_index[self.num_records] = self.RID 
-        self.num_records += 1
+        self.num_records += 1 # might be better to store at the page_block level
 
     def read(self, read_offset) -> int:
         adjusted_read_offset = read_offset * COLUMN_DATA_SIZE

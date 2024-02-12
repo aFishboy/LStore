@@ -101,21 +101,27 @@ class Query:
     """
     # Update a record with specified key and columns
     # Returns True if update is succesful
-    # :param search_key: the value you want to search based on (same as search_key in select)
+    # :param primary_key: the value you want to search based on (same as search_key in select)
     # Returns False if no records exist with given key or if the target record cannot be accessed due to 2PL locking
     """
-    #def update(self, primary_key, *columns):
-    def update(self, search_key, search_key_index, projected_columns_index):
-        arr = []
-        for i in range(len(projected_columns_index)):
-            if projected_columns_index[i] == 1:
-                arr.append(i)
-        projected_columns_index = arr
-        baseRecord_RID = self.table.index.locate(search_key_index, search_key)
-        #selected_record = self.table.read(baseRecord_RID, projected_columns_index)
+    def update(self, primary_key, *columns):
+        baseRecord_RID = self.table.index.locate(primary_key)
+        selected_record = self.table.read(baseRecord_RID)
         selected_record = {}
-        updated_record = self.table.update_record(selected_record)
-        return updated_record
+
+        try:
+            if len(columns) != self.table.num_columns:
+                print("Error: Number of values does not match the number columns.")
+                return False
+           
+            self.table.update_record(selected_record)
+
+            print("Data Updated successfully!")
+            return True
+        
+        except Exception as e:
+            print(f"Error inserting data: {e}")
+            return False
 
     
     """

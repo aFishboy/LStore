@@ -21,8 +21,12 @@ class Query:
     # Return False if record doesn't exist or is locked due to 2PL
     """
     def delete(self, primary_key):
-        pass
-    
+        if not self.record_exists(primary_key):
+            return False
+        if self.is_locked(primary_key): #need to add is_locked function
+            return False
+        self.delete_record(primary_key)
+        return True    
     
     """
     # Insert a record with specified columns
@@ -156,7 +160,18 @@ class Query:
     # Returns False if no record exists in the given range
     """
     def sum_version(self, start_range, end_range, aggregate_column_index, relative_version):
-        pass
+        summation = 0
+        for record_index in range(start_range, end_range + 1):
+            try:
+                value = self.read_version(record_index, relative_version, aggregate_column_index)
+                summation += value 
+            except IndexError:
+                continue
+        
+        if summation == 0:
+            return False 
+        else:
+            return summation
 
     
     """

@@ -43,12 +43,33 @@ class Table:
             total_page_ranges += 1
 
     def update_record(self, primary_key, *columns):
-        pass
+        if not self.record_exists(primary_key):
+            print("Record with key {} does not exist.".format(primary_key))
+            return
+        
+        rid = self.index.locate(self.key, primary_key)
+        
+        for record in self.data:
+            if record.rid == rid:
+                record.columns = columns
+                return
+        print("Record with key {} not found in data list.".format(primary_key))
+
 
     def read_record(self, rid, query_columns):
-        pass
+        for record in self.data:
+            if record.rid == rid:
+                result = [record.columns[i] for i in query_columns]
+                return result
+        print("Record with RID {} not found in data list.".format(rid))
+        return None
 
     def delete_record(self, key):
+        pass
+    
+    def record_exists(self, key):
+        pass
+    def is_locked(self, key):
         pass
 
     def generate_rid(self):

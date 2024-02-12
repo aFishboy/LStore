@@ -67,7 +67,7 @@ class Table:
     def delete_record(self, key):
         pass
     
-    def record_exists(self, key):
+    def record_exists(self, key): 
         pass
     def is_locked(self, key):
         pass

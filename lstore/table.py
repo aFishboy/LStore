@@ -72,11 +72,37 @@ class Table:
         return None
 
     def delete_record(self, key):
+          # Check if the record exists
+    if not self.record_exists(key):
+        print("Record with key {} does not exist.".format(key))
+        return
+    # Locate the RID of the record to delete
+    rid = self.index.locate(self.key, key)
+    # Find and remove the record from the data list
+    for i, record in enumerate(self.data):
+        if record.rid == rid:
+            del self.data[i]
+            break
+    # Remove the record from the index
+    self.index.remove(key)
+    print("Record with key {} deleted successfully.".format(key))
         pass
     
     def record_exists(self, key): 
+           # Check if the record exists in the index
+    return self.index.locate(self.key, key) != -1
         pass
+
     def is_locked(self, key):
+          locked_records = {
+        1: True,  # Example of a locked record with key 1
+        2: False  # Example of an unlocked record with key 2
+        # Add more records as needed
+    }
+    if key in locked_records:
+        return locked_records[key]
+    else:
+        return False  # Default assumption: record is not locked if not found in the dictionary
         pass
 
     def generate_rid(self):

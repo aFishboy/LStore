@@ -65,8 +65,7 @@ class Query:
         found_matching_records = []
         found_matching_records = self.table.select_records(search_key, search_key_column, projected_columns_index)
 
-        
-
+    
         for i in range(len(projected_columns_index)):
             if projected_columns_index[i] == 1:
                 arr.append(i)

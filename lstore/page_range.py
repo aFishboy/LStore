@@ -2,8 +2,7 @@ from page import Page
 from page_block import PageBlock
 
 class PageRange:
-    def __init__(self, table, num_columns) -> None:
-        self.table = table
+    def __init__(self, num_columns) -> None:
         self.num_columns = num_columns
         self.base_pages_per_range = 8
         self.num_records = 0
@@ -27,7 +26,6 @@ class PageRange:
         
         # Write the data to the base page
         base_page_to_write.write(*data_to_write)
-
 
     def has_capacity(self):
         if len(self.base_pages) < self.base_pages_per_range or self.base_pages[-1].has_capacity():

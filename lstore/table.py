@@ -37,10 +37,12 @@ class Table:
         total_page_ranges = len(self.page_ranges)
         new_rid = self.generate_rid()
 
+        # if total_page_ranges == 0 or not self.page_ranges[-1].hasCapacity():   prob can invert this and save lines
+
         if  total_page_ranges != 0 and self.page_ranges[-1].hasCapacity():
             self.page_ranges[-1].addNewRecord(new_rid, *columns)
         else:
-            self.page_ranges.append(PageRange(self, self.num_columns))
+            self.page_ranges.append(PageRange(self.num_columns))
             total_page_ranges += 1
             self.page_ranges[-1].addNewRecord(new_rid, *columns)
 
@@ -61,7 +63,7 @@ class Table:
         print("Record with key {} not found in data list.".format(primary_key))
 
 
-    def read_record(self, rid, query_columns):
+    def select_records(self, search_key, search_key_column, projected_columns_index):
         for record in self.data:
             if record.rid == rid:
                 result = [record.columns[i] for i in query_columns]

@@ -30,7 +30,7 @@ class Query:
     
     """
     # Insert a record with specified columns
-    # Return True upon succesful insertion
+    # Return True upon successful insertion
     # Returns False if insert fails for whatever reason
     """
     def insert(self, *columns):
@@ -52,7 +52,7 @@ class Query:
     """
     # Read matching record with specified search key
     # :param search_key: the value you want to search based on
-    # :param search_key_index: the column index you want to search based on
+    # :param search_key_column: the column index you want to search based on
     # :param projected_columns_index: what columns to return. array of 1 or 0 values.
     # Returns a list of Record objects upon success
     # Returns False if record locked by TPL
@@ -60,14 +60,18 @@ class Query:
     """
     # search key is what we are looking for for example a name
     # search key index is the column it would be in for example if it is a name it would be in the name column 
-    # projected_columns_index is what columns we want to return of the record if / when we find i think
-    def select(self, search_key, search_key_index, projected_columns_index):
-        arr = []
+    # projected_columns_index is what columns we want to return of the record/s if / when we find i think
+    def select(self, search_key, search_key_column, projected_columns_index):
+        found_matching_records = []
+        found_matching_records = self.table.select_records(search_key, search_key_column, projected_columns_index)
+
+        
+
         for i in range(len(projected_columns_index)):
             if projected_columns_index[i] == 1:
                 arr.append(i)
         projected_columns_index = arr
-        baseRecord_RID = self.table.index.locate(search_key_index, search_key)
+        baseRecord_RID = self.table.index.locate(search_key_column, search_key)
         #selected_record = self.table.read(baseRecord_RID, projected_columns_index)
         # need to fix table.read, add it
         selected_record = {}
@@ -79,18 +83,18 @@ class Query:
     """
     # Read matching record with specified search key
     # :param search_key: the value you want to search based on
-    # :param search_key_index: the column index you want to search based on
+    # :param search_key_column: the column index you want to search based on
     # :param projected_columns_index: what columns to return. array of 1 or 0 values.
     # :param relative_version: the relative version of the record you need to retreive.
     # Returns a list of Record objects upon success
     # Returns False if record locked by TPL
     # Assume that select will never be called on a key that doesn't exist
     """
-    def select_version(self, search_key, search_key_index, projected_columns_index, relative_version):
+    def select_version(self, search_key, search_key_column, projected_columns_index, relative_version):
         selected_records = []
 
         for record in self.records:
-            if record[search_key_index] == search_key:
+            if record[search_key_column] == search_key:
                 if len(record) > relative_version:
                     selected_record = [record[i] for i in range(len(record)) if projected_columns_index[i] == 1]
                     selected_records.append(selected_record)

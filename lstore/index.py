@@ -1,46 +1,41 @@
 """
 A data structure holding indices for various columns of a table. Key column should be indexed by default, other columns can be indexed through this object. Indices are usually B-Trees, but other data structures can be used as well.
 """
-#from BTrees.OOBTree import OOBTree
+from BTrees.OOBTree import OOBTree
 from .page import Page
 
 class Index:
 
     def __init__(self, table):
-        # One index for each table. All are empty initially.
-        self.indices = [None for _ in range(table.num_columns)]
-        #self.key_column = table.key_column
+        self.indices = [OOBTree() for _ in range(table.num_columns)]  # Initialize each column's index as an OOBTree
+        self.key = table.key
         self.column_num = dict()
         self.table = table
-        
-        pass
 
     """
     # returns the location of all records with the given value on column "column"
     """
 
     def locate(self, column, value):
+        """
+        Returns the location of all records with the given value on column "column".
+        """
+        if column != self.key:
+            print("Lookup on non-primary key columns not supported in this context.")
+            return None
         column_btree = self.indices[column]
-        if not column_btree.has_key(value):
-            return []
-        return column_btree[value]
-
-    """
-    # Returns the RIDs of all records with values in column "column" between "begin" and "end"
-    """
+        return column_btree.get(value, None)
 
     def locate_range(self, begin, end, column):
+        """
+        Returns the RIDs of all records with values in column "column" between "begin" and "end".
+        """
         return_list = []
         column_btree = self.indices[column]
-        for list1 in list(column_btree.values(min=begin, max=end)):
-            return_list += list1
+        # Use values(min, max) to retrieve a range of keys
+        for record_list in column_btree.values(min=begin, max=end):
+            return_list.extend(record_list)
         return return_list
-
-    def locate(self, column, value):
-        column_btree = self.indices[column]
-        if not column_btree.has_key(value):
-            return []
-        return column_btree[value]
     
     """
     # optional: Create index on specific column

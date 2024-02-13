@@ -137,6 +137,10 @@ class Query:
     def update(self, primary_key, *columns):
         """
         Updates the record identified by the primary key with new values for specified columns.
+        baseRecord_RID = self.table.index.locate(primary_key)
+        query_columns = [i for i in range(len(columns))]
+        selected_record = self.table.read(baseRecord_RID,query_columns)
+        selected_record = {}
 
         Parameters:
             primary_key: The primary key of the record to update.

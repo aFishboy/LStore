@@ -113,7 +113,8 @@ class Query:
     """
     def update(self, primary_key, *columns):
         baseRecord_RID = self.table.index.locate(primary_key)
-        selected_record = self.table.read(baseRecord_RID)
+        query_columns = [i for i in range(len(columns))]
+        selected_record = self.table.read(baseRecord_RID,query_columns)
         selected_record = {}
 
         try:

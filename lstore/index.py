@@ -36,7 +36,7 @@ class Index:
             return_list += list1
         return return_list
 
-    def locate(self, column, value):
+    def locate(self, value, column = 0):
         column_btree = self.indices[column]
         if not column_btree.has_key(value):
             return []

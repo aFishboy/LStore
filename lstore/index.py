@@ -1,15 +1,15 @@
 """
 A data structure holding indices for various columns of a table. Key column should be indexed by default, other columns can be indexed through this object. Indices are usually B-Trees, but other data structures can be used as well.
 """
-from BTrees.OOBTree import OOBTree
-from page import Page
+#from BTrees.OOBTree import OOBTree
+from .page import Page
 
 class Index:
 
     def __init__(self, table):
         # One index for each table. All are empty initially.
         self.indices = [None for _ in range(table.num_columns)]
-        self.key_column = table.key_column
+        #self.key_column = table.key_column
         self.column_num = dict()
         self.table = table
         

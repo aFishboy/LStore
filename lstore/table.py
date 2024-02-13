@@ -1,6 +1,6 @@
 from lstore.index import Index
 from time import time
-from page_range import PageRange
+from .page_range import PageRange
 
 INDIRECTION_COLUMN = 0
 RID_COLUMN = 1
@@ -39,7 +39,7 @@ class Table:
 
         # if total_page_ranges == 0 or not self.page_ranges[-1].hasCapacity():   prob can invert this and save lines
 
-        if  total_page_ranges != 0 and self.page_ranges[-1].hasCapacity():
+        if  total_page_ranges != 0 and self.page_ranges[-1].has_capacity():
             self.page_ranges[-1].addNewRecord(new_rid, *columns)
         else:
             self.page_ranges.append(PageRange(self.num_columns))
@@ -64,12 +64,16 @@ class Table:
 
 
     def select_records(self, search_key, search_key_column, projected_columns_index):
-        for record in self.data:
-            if record.rid == rid:
-                result = [record.columns[i] for i in query_columns]
-                return result
-        print("Record with RID {} not found in data list.".format(rid))
-        return None
+        selected_records = []
+        for page_range in self.page_ranges:
+            selected_records.extend(page_range.select_records(search_key, search_key_column, projected_columns_index))
+
+        record_object_array = []
+        for record in selected_records:
+            record_object_array.append(Record(record[-1], self.key, record[:len(record) - 1]))
+
+        return record_object_array
+
 
     def delete_record(self, key):
          # Check if the record exists

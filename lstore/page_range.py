@@ -1,5 +1,5 @@
-from page import Page
-from page_block import PageBlock
+from .page import Page
+from .page_block import PageBlock
 
 class PageRange:
     def __init__(self, num_columns) -> None:
@@ -31,3 +31,11 @@ class PageRange:
         if len(self.base_pages) < self.base_pages_per_range or self.base_pages[-1].has_capacity():
             return True
         return False
+    
+    def select_records(self, search_key, search_key_column, projected_columns_index):
+        selected_records = []
+        for page_block in self.base_pages:
+            selected_records.extend(page_block.select_records(search_key, search_key_column, projected_columns_index))
+        
+        return selected_records
+        

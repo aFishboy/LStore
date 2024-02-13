@@ -5,22 +5,31 @@ from lstore.index import Index
 class Query:
     """
     # Creates a Query object that can perform different queries on the specified table 
-    Queries that fail must return False
+    Queries that fail must return False 
     Queries that succeed should return the result or True
     Any query that crashes (due to exceptions) should return False
     """
     def __init__(self, table):
+        """
+        Initializes a Query object for performing operations on the specified table.
+        
+        Parameters:
+        - table (Table): The table object on which the queries will be performed.
+        """
         self.table = table
         pass
 
     
-    """
-    # internal Method
-    # Read a record with specified RID
-    # Returns True upon succesful deletion
-    # Return False if record doesn't exist or is locked due to 2PL
-    """
     def delete(self, primary_key):
+        """
+        Deletes a record with the specified primary key.
+        
+        Parameters:
+        - primary_key: The primary key of the record to delete.
+        
+        Returns:
+        True if the deletion is successful, False otherwise.
+        """
         if not self.record_exists(primary_key):
             return False
         if self.is_locked(primary_key): #need to add is_locked function
@@ -28,12 +37,16 @@ class Query:
         self.delete_record(primary_key)
         return True    
     
-    """
-    # Insert a record with specified columns
-    # Return True upon successful insertion
-    # Returns False if insert fails for whatever reason
-    """
     def insert(self, *columns):
+        """
+        Inserts a new record into the table with the specified column values.
+        
+        Parameters:
+        - columns: A sequence of values for each column in the record.
+        
+        Returns:
+        True upon successful insertion, False if insertion fails.
+        """
         schema_encoding = '0' * self.table.num_columns # What is this for
         try:
             if len(columns) != self.table.num_columns:
@@ -62,20 +75,25 @@ class Query:
     # search key index is the column it would be in for example if it is a name it would be in the name column 
     # projected_columns_index is what columns we want to return of the record/s if / when we find i think
     def select(self, search_key, search_key_column, projected_columns_index):
-        found_matching_records = []
-        found_matching_records = self.table.select_records(search_key, search_key_column, projected_columns_index)
+        """
+        Selects records matching the specified search key and returns specified columns.
 
-        
+        Parameters:
+        - search_key: The value to search for.
+        - search_key_column: The index of the column to search.
+        - projected_columns_index: Indices of the columns to return in the result, 
+                                   indicated as a list of 1 (include column) or 0 (exclude column).
 
-        for i in range(len(projected_columns_index)):
-            if projected_columns_index[i] == 1:
-                arr.append(i)
-        projected_columns_index = arr
-        baseRecord_RID = self.table.index.locate(search_key_column, search_key)
-        #selected_record = self.table.read(baseRecord_RID, projected_columns_index)
-        # need to fix table.read, add it
-        selected_record = {}
-        return selected_record
+        Returns:
+        A list of tuples, each containing the values for the specified query_columns from each matching record.
+        """
+        # Transform projected_columns_index from a list of 1s and 0s to actual column indices
+        actual_column_indices = [index for index, value in enumerate(projected_columns_index) if value == 1]
+
+        # Use the transformed list to fetch records using the table's select_records method
+        selected_records = self.table.select_records(search_key, search_key_column, actual_column_indices)
+
+        return selected_records
         
    
 
@@ -113,6 +131,16 @@ class Query:
     # Returns False if no records exist with given key or if the target record cannot be accessed due to 2PL locking
     """
     def update(self, primary_key, *columns):
+        """
+        Updates the record with the specified primary key using the provided column values.
+        
+        Parameters:
+        - primary_key: The primary key of the record to update.
+        - columns: The new values for the record.
+        
+        Returns:
+        True if the update is successful, False otherwise.
+        """
         baseRecord_RID = self.table.index.locate(primary_key)
         selected_record = self.table.read(baseRecord_RID)
         selected_record = {}
@@ -141,6 +169,17 @@ class Query:
     # Returns False if no record exists in the given range
     """
     def sum(self, start_range, end_range, aggregate_column_index):
+        """
+        Calculates the sum of values in a specified column for records within a given key range.
+        
+        Parameters:
+        - start_range: The start of the key range.
+        - end_range: The end of the key range.
+        - aggregate_column_index: The index of the column to aggregate.
+        
+        Returns:
+        The sum of the specified column across records in the range upon success, False otherwise.
+        """
         total_sum = 0
         try:
             for record in self.table.data:

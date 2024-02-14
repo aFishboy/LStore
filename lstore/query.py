@@ -89,15 +89,16 @@ class Query:
         found_matching_records = self.table.select_records(search_key, search_key_column, projected_columns_index)
         return found_matching_records
     
-        for i in range(len(projected_columns_index)):
-            if projected_columns_index[i] == 1:
-                arr.append(i)
-        projected_columns_index = arr
-        baseRecord_RID = self.table.index.locate(search_key_column, search_key)
-        #selected_record = self.table.read(baseRecord_RID, projected_columns_index)
-        # need to fix table.read, add it
-        selected_record = {}
-        return selected_record
+    # need to delete i think
+        # for i in range(len(projected_columns_index)):
+        #     if projected_columns_index[i] == 1:
+        #         arr.append(i)
+        # projected_columns_index = arr
+        # baseRecord_RID = self.table.index.locate(search_key_column, search_key)
+        # #selected_record = self.table.read(baseRecord_RID, projected_columns_index)
+        # # need to fix table.read, add it
+        # selected_record = {}
+        # return selected_record
         
    
 

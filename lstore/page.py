@@ -32,13 +32,14 @@ class Page:
         return converted_data        
     
     def update_entry(self, offset, value_to_write):
-        self.check_valid_offset(offset)
+        if self.check_valid_offset(offset) == False:
+            raise IndexError("Attempted to update unwritten data")
         bytes_to_write = value_to_write.to_bytes(COLUMN_DATA_SIZE, byteorder='little')
         self.data[offset:offset + COLUMN_DATA_SIZE] = bytes_to_write
 
     def check_valid_offset(self, offset):
-        if offset + COLUMN_DATA_SIZE > len(self.data) or offset < 0 :
-            return False
+        if offset > len(self.data) - 1 or offset < 0 :
+            raise IndexError("Attempted to access beyond the bounds of the data buffer")
         if offset >= self.num_records * 8:
             return False
         return True

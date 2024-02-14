@@ -49,7 +49,7 @@ for key in records:
         pass
         # print('select on', key, ':', record)
 print("Select finished")
-"""
+
 for key in records:
     updated_columns = [None, None, None, None, None]
     for i in range(2, grades_table.num_columns):
@@ -89,4 +89,3 @@ for c in range(0, grades_table.num_columns):
         else:
             pass
             # print('sum on [', keys[r[0]], ',', keys[r[1]], ']: ', column_sum)
-"""

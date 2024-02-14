@@ -40,8 +40,7 @@ class TestPage:
             page.write(i)
         with pytest.raises(IndexError):
             page.read(-1)
-        with pytest.raises(IndexError):
-            page.read(5)
+        assert page.read(40) == None
         for i in range(5, page.MAX_RECORDS_PER_PAGE):
             page.write(i)
         with pytest.raises(IndexError):
@@ -51,7 +50,7 @@ class TestPage:
     def test_update_invalid_offset(self):
         page = Page()
         with pytest.raises(IndexError):
-            page.update_entry(1, 10)
+            page.update_entry(0, 10)
 
     # can write a new record to the page
     def test_write_record(self):
@@ -69,7 +68,7 @@ class TestPage:
         page.write(10)
         assert page.read(0) == 10
         page.write(19923940)
-        assert page.read(1) == 19923940
+        assert page.read(8) == 19923940
 
     # can update an existing record on the page
     def test_update_record(self):

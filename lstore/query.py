@@ -124,43 +124,16 @@ class Query:
     """
     def update(self, primary_key, *columns):
         """
-        Updates the record identified by the primary key with new values for specified columns.
-        baseRecord_RID = self.table.index.locate(primary_key)
-        query_columns = [i for i in range(len(columns))]
-        selected_record = self.table.read(baseRecord_RID,query_columns)
-        selected_record = {}
-
         Parameters:
             primary_key: The primary key of the record to update.
             *columns: New values for the record, specified as a sequence of column values. Use None for unchanged columns.
 
         Returns:
             bool: True if the update was successful, False if no record with the given key exists or due to locking issues.
-
-        Note: This function is marked as "DOES NOT WORK" because it lacks mechanisms to handle locks or validate primary key existence.
         """
         
         self.table.update_record(primary_key, *columns)
-        # # Locate the base record's RID using the primary key.
-        # base_rid = self.table.index.locate(self.table.key, primary_key)
-        # if base_rid is None:
-        #     print(f"No record found with primary key: {primary_key}")
-        #     return False
-        # # Ensure base_rid is a singular value.
-        # if isinstance(base_rid, list):
-        #     if len(base_rid) == 1:
-        #         base_rid = base_rid[0]
-        #     else:
-        #         print(f"Multiple or no records found with primary key: {primary_key}, base_rid: {base_rid}")
-        #         return False
-        # elif base_rid is None:
-        #     print(f"No record found with primary key: {primary_key}")
-        #     return False
-
-        # # Proceed with the update using base_rid as a singular RID.
-        # updated_columns = [None if col is None else col for col in columns]
-        # success = self.table.add_tail_record(base_rid, updated_columns)
-        # return success
+        
 
     
     # DOES NOT WORK

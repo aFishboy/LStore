@@ -89,7 +89,7 @@ class PageRange:
         return selected_records
     
     # DOES NOT WORK FULLY
-    def updateRecord(self, record_index, base_rid, *columns):
+    def updateRecord(self, page_block_index, record_index, new_rid, *columns):
         """
         Updates a record identified by base_rid with new values for specified columns.
 
@@ -100,10 +100,9 @@ class PageRange:
 
         Note: This function assumes the existence of a method to add tail records and update indirection, which may not be fully implemented.
         """
-        new_rid = self.table.generate_rid()
         # Check if the last tail page block has capacity
         if not self.tail_pages or not self.tail_pages[-1].has_capacity():
-            self.tail_pages.append(PageBlock(self.num_columns + 3))
+            self.tail_pages.append(PageBlock(self.num_columns + 2))
         
         # Construct the tail record with None for unchanged values and actual values for changed columns
         tail_record = [None] * self.num_columns
@@ -113,43 +112,15 @@ class PageRange:
         
         # Add the tail record to the latest tail page block
         self.tail_pages[-1].write_tail_record(new_rid, tail_record)
-        
-        # Update the indirection pointer in the base record
-        self.update_base_record_indirection(base_rid, new_rid)
     
-    # DOES NOT WORK FULLY
-    def add_tail_record(self, rid, updated_columns):
-        if not self.tail_pages or not self.tail_pages[-1].has_capacity():
-            # If not, create a new tail page block
-            self.tail_pages.append(PageBlock(self.num_columns + 3))
-        
-        # Now, we are sure that the last tail page block has capacity, add the tail record
-        self.tail_pages[-1].write_tail_record(rid, updated_columns)
+    def update_base_record_indirection(self, new_rid, block_index, record_index):
+        self.base_pages[block_index].update_base_record_indirection(new_rid, record_index)
         return True
     
     # DOES NOT WORK FULLY
-    def update_base_record_indirection(self, base_rid, new_tail_rid):
-        # Find the base record's location within the page range.
-        page_index, record_index = self.find_base_record_location(base_rid)
-
-        if page_index is not None and record_index is not None:
-            # Access the PageBlock where the base record is stored.
-            base_page_block = self.base_pages[page_index]
-            
-            # Update the indirection column for this base record to point to the new tail RID.
-            # This assumes you have a method in PageBlock to handle the update.
-            # For example, you might need to calculate the specific offset for the indirection column.
-            base_page_block.update_record_indirection(record_index, new_tail_rid)
-        else:
-            print(f"Base record not found for RID: {base_rid}")
-            return False
-
-        return True
-    
-    # DOES NOT WORK FULLY
-    def update_record_indirection(self,  base_rid, new_tail_rid):
-        page_index, record_index = self.find_base_record_location(base_rid)
-        if page_index is not None and record_index is not None:
+    def update_record_indirection(self, base_rid, new_tail_rid):
+        page_index, block_index, record_index = self.find_base_record_location(base_rid)
+        if page_index is not None and block_index is not None and record_index is not None:
             # Access the specific PageBlock
             base_page_block = self.base_pages[page_index]
             
@@ -166,10 +137,10 @@ class PageRange:
         if base_rid in self.page_directory:
             return self.page_directory[base_rid]
         else:
-            return None, None
+            return None, None, None
     
     # DOES NOT WORK FULLY 
-    def find_record_by_rid(base_page_num, offset, query_columns):
+    def find_record_by_rid(self, base_page_num, offset, query_columns):
         record = []
 
         # Access the base PageBlock
@@ -201,3 +172,18 @@ class PageRange:
                 record.append(value)
 
         return record
+    
+    # DOES NOT WORK FULLY
+    def add_tail_record(self, rid, updated_columns):
+        if not self.tail_pages or not self.tail_pages[-1].has_capacity():
+            # If not, create a new tail page block
+            self.tail_pages.append(PageBlock(self.num_columns + 3))
+        
+        # Now, we are sure that the last tail page block has capacity, add the tail record
+        self.tail_pages[-1].write_tail_record(rid, updated_columns)
+        return True
+    
+    # DOES NOT WORK FULLY
+    
+    
+    

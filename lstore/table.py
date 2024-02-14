@@ -46,7 +46,7 @@ class Table:
         self.index = Index(self)
         self.page_ranges = [] 
         self.last_rid = -1
-        self.page_directory = {} # maps RID to tuple, (What page_range, what record location in page) 
+        self.page_directory = {} # maps RID to tuple, (What page_range, !!!NEED TO ALSO HAVE PAGE BLOCK!!!!, what record location in page) 
         # Tracks the location of records within page ranges.
 
     def insert_record(self, *columns):
@@ -67,12 +67,15 @@ class Table:
         # Add the new record to the last page range
         self.page_ranges[-1].addNewRecord(new_rid, *columns)
 
+
         # Update the page directory with the new record's location
-        self.page_directory[new_rid] = (total_page_ranges - 1, len(self.page_ranges[-1].base_pages) - 1)
+        self.page_directory[new_rid] = (total_page_ranges - 1, len(self.page_ranges[-1].base_pages) - 1, self.page_ranges[-1].base_pages[-1].last_written_offset)
+
 
         # Update the index for the primary key column with the new RID
         primary_key_value = columns[self.key]
-        if self.key is not None:  # Ensure tahat the table has a designated primary key column
+
+        if self.key is not None:  # Ensure that the table has a designated primary key column
             # Check if B-Tree exists for the primary key, initialize if not
             if not self.index.indices[self.key]:
                 self.index.indices[self.key] = OOBTree()
@@ -94,18 +97,27 @@ class Table:
         
         Note: This method requires thorough testing and validation to ensure correct functionality.
         """
+        # self.index.
         base_rid = self.index.locate(self.key, primary_key)
         if base_rid is None:
             print("Record with primary key not found.")
             return False
 
         # Retrieve the page range and record index from the page directory using the located RID
-        page_range_index, record_index = self.page_directory[base_rid]
+        page_range_index, page_block_index, record_index = self.page_directory[base_rid]
 
         # Assuming you have a list of PageRange objects in self.page_ranges
         # Call the updateRecord method on the appropriate PageRange object with the located info
-        self.page_ranges[page_range_index].updateRecord(record_index, base_rid, *columns)
+        new_rid = self.generate_rid()
+        self.page_ranges[page_range_index].updateRecord(page_block_index, record_index, new_rid, *columns)
+        # Update the indirection pointer in the base record
+        page_index, block_index, record_index = self.page_directory[base_rid]
+        self.page_ranges[page_index].update_base_record_indirection(new_rid, block_index, record_index)
         return True
+    
+    
+    
+    
 
     # The method below is marked as "DOES NOT WORK" - specifics of record location unpacking need revision.
     def read_record(self, rid, query_columns):

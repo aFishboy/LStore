@@ -38,7 +38,7 @@ class Index:
         return return_list
     
     """
-    # optional: Create index on specific column
+    Create index on specific column
     """
 
     def create_index(self, column_number):

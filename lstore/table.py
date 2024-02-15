@@ -2,7 +2,7 @@ from lstore.index import Index
 from time import time
 from .page_range import PageRange
 from BTrees.OOBTree import OOBTree
-
+from avltree import AvlTree
 INDIRECTION_COLUMN = 0
 RID_COLUMN = 1
 TIMESTAMP_COLUMN = 2
@@ -75,11 +75,21 @@ class Table:
         # Update the index for the primary key column with the new RID
         primary_key_value = columns[self.key]
 
-        if self.key is not None:  # Ensure that the table has a designated primary key column
-            # Check if B-Tree exists for the primary key, initialize if not
-            if not self.index.indices[self.key]:
-                self.index.indices[self.key] = OOBTree()
-            self.index.indices[self.key].insert(primary_key_value, new_rid)
+        for i in range(len(columns)):
+            avl_tree = self.index.indices[i]
+            if columns[i] in avl_tree:
+                previous_rids = avl_tree[columns[i]]
+            else:
+                previous_rids = []  # Or any default value you want to use
+            previous_rids.append(new_rid)
+            avl_tree[columns[i]] = previous_rids
+
+
+        # if self.key is not None:  # Ensure that the table has a designated primary key column
+        #     # Check if B-Tree exists for the primary key, initialize if not
+        #     if not self.index.indices[self.key]:
+        #         self.index.indices[self.key] = AvlTree()
+        #     self.index.indices[self.key][primary_key_value] = new_rid
 
     
     # The method below is marked as "DOES NOT WORK" - it requires validation and testing.
@@ -98,11 +108,11 @@ class Table:
         Note: This method requires thorough testing and validation to ensure correct functionality.
         """
         # self.index.
-        base_rid = self.index.locate(self.key, primary_key)
+        base_rid = self.index.locate(self.key, primary_key)[0]
         if base_rid is None:
             print("Record with primary key not found.")
             return False
-
+        
         # Retrieve the page range and record index from the page directory using the located RID
         page_range_index, page_block_index, record_index = self.page_directory[base_rid]
 
@@ -110,15 +120,12 @@ class Table:
         # Call the updateRecord method on the appropriate PageRange object with the located info
         new_rid = self.generate_rid()
         self.page_ranges[page_range_index].updateRecord(page_block_index, record_index, new_rid, *columns)
+        self.page_ranges[page_range_index].update_base_record_indirection(new_rid, page_block_index, record_index)
+
         # Update the indirection pointer in the base record
-        page_index, block_index, record_index = self.page_directory[base_rid]
-        self.page_ranges[page_index].update_base_record_indirection(new_rid, block_index, record_index)
         return True
     
     
-    
-    
-
     # The method below is marked as "DOES NOT WORK" - specifics of record location unpacking need revision.
     def read_record(self, rid, query_columns):
         """
@@ -174,9 +181,12 @@ class Table:
         Returns:
             A list of Record objects containing the data for each selected record.
         """
+        base_rids = self.index.locate(search_key_column, search_key)
         selected_records = []
-        for page_range in self.page_ranges:
-            selected_records.extend(page_range.select_records(search_key, search_key_column, projected_columns_index))
+        for base_rid in base_rids:
+            page_range_index, page_block_index, record_index = self.page_directory[base_rid]
+            returned_records = self.page_ranges[page_range_index].select_records(page_block_index, record_index, projected_columns_index)
+            selected_records.append(returned_records)
 
         record_object_array = []
         for record in selected_records:

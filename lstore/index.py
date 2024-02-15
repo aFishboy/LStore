@@ -2,12 +2,13 @@
 A data structure holding indices for various columns of a table. Key column should be indexed by default, other columns can be indexed through this object. Indices are usually B-Trees, but other data structures can be used as well.
 """
 from BTrees.OOBTree import OOBTree
+from avltree import AvlTree
 from .page import Page
 
 class Index:
 
     def __init__(self, table):
-        self.indices = [OOBTree() for _ in range(table.num_columns)]  # Initialize each column's index as an OOBTree
+        self.indices = [AvlTree() for _ in range(table.num_columns)]  # Initialize each column's index as an OOBTree
         self.key = table.key
         self.column_num = dict()
         self.table = table
@@ -20,11 +21,12 @@ class Index:
         """
         Returns the location of all records with the given value on column "column".
         """
-        if column != self.key:
-            print("Lookup on non-primary key columns not supported in this context.")
-            return None
+        # if column != self.key:
+        #     print("Lookup on non-primary key columns not supported in this context.")
+        #     return None
         column_btree = self.indices[column]
-        return column_btree.get(value, None)
+        print(column_btree[value], " Btree")
+        return column_btree[value]
 
     def locate_range(self, begin, end, column):
         """

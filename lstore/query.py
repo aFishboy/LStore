@@ -53,7 +53,7 @@ class Query:
                 return False
             self.table.insert_record(*columns)
 
-            print("Data inserted successfully!")
+            # print("Data inserted successfully!")
             return True
         
         except Exception as e:

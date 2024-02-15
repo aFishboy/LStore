@@ -19,22 +19,30 @@ class PageBlock:
             self.column_pages[i].write(columns[i])
             #self.column_pages[i].increment_record_count() # may need to be on the outside of for loop and only happen once idk
     
-    def select_records(self, search_key, search_key_column, projected_columns_index):
-        column_to_search = self.column_pages[search_key_column]
-        found_key_offsets = column_to_search.find_key_offsets(search_key)
-        
-        #print("found keys", found_key_offsets)
-        records_to_return = []
-        for offset in found_key_offsets:
-            record = []
-            for index, column_val in enumerate(projected_columns_index):
+    def get_record(self, record_index, projected_columns_index):
+        record_to_return = []
+
+        for index, column_val in enumerate(projected_columns_index):
                 if column_val == 1:    
-                    record.append(self.column_pages[index].read(offset))
-            #print(self.column_pages[self.num_columns - 3].read(offset))
-            record.append(self.column_pages[self.num_columns - 3].read(offset))
-            records_to_return.append(record)
-        #print(records_to_return)
-        return records_to_return
+                    record_to_return.append(self.column_pages[index].read(record_index))
+        record_to_return.append(self.column_pages[self.num_columns - 3].read(record_index))
+        
+
+        # column_to_search = self.column_pages[search_key_column]
+        # found_key_offsets = column_to_search.find_key_offsets(search_key)
+        
+        # #print("found keys", found_key_offsets)
+        # records_to_return = []
+        # for offset in found_key_offsets:
+        #     record = []
+        #     for index, column_val in enumerate(projected_columns_index):
+        #         if column_val == 1:    
+        #             record.append(self.column_pages[index].read(offset))
+        #     #print(self.column_pages[self.num_columns - 3].read(offset))
+        #     record.append(self.column_pages[self.num_columns - 3].read(offset))
+        #     records_to_return.append(record)
+        # #print(records_to_return)
+        return record_to_return
     
     # DOES NOT WORK FULLY
     def write_tail_record(self, rid, tail_record):
@@ -46,11 +54,12 @@ class PageBlock:
                 self.column_pages[i].write(value)
 
     def update_base_record_indirection(self, new_rid, record_index):
-        self.print_record(record_index)
+        # self.print_record(record_index)
         self.column_pages[-2].update_entry(record_index, new_rid)
-        self.print_record(record_index)
+        # self.print_record(record_index)
 
     def print_record(self, record_index):
+        print("update_base_record_indirection")
         for i in range(self.num_columns):
             print(self.column_pages[i].read(record_index), end=' ')
         print("")

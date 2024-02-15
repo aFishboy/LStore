@@ -28,8 +28,8 @@ class PageRange:
         self.tail_pages = []     
         # Create base pages with RID, indirection, and schema encoding column
         self.base_pages.append(PageBlock(self.num_columns + 3)) 
-        # Create tail pages with RID and indirection
         self.tail_page_directory = {}   # rid -> (tail page number, offset)
+        # Create tail pages with RID and indirection
         self.tail_pages.append(PageBlock(self.num_columns + 3))
         
 
@@ -53,6 +53,8 @@ class PageRange:
         # Group columns with additional values
         data_to_write = list(columns)  # Convert columns tuple to a list
         data_to_write.extend([rid, 0, 0])  # Append additional values
+
+
         
         # Write the data to the base page
         base_page_to_write.write(*data_to_write)
@@ -68,7 +70,7 @@ class PageRange:
             return True
         return False
     
-    def select_records(self, search_key, search_key_column, projected_columns_index):
+    def select_records(self, base_page_block_index, record_index, projected_columns_index):
         """
         Selects records matching a given search key from a specific column, projecting only certain columns.
 
@@ -82,11 +84,16 @@ class PageRange:
 
         Note: Does not directly handle tail records or schema changes.
         """
-        selected_records = []
-        for page_block in self.base_pages:
-            selected_records.extend(page_block.select_records(search_key, search_key_column, projected_columns_index))
-        
-        return selected_records
+        record_to_return = []
+        # if indirection column is 0
+        if self.base_pages[base_page_block_index].column_pages[-2].read(record_index) == 0:
+            record_to_return = self.base_pages[base_page_block_index].get_record(record_index, projected_columns_index)
+        else:
+            latest_record_rid = self.base_pages[base_page_block_index].column_pages[-2].read(record_index)
+            # rid -> (tail page number, offset)
+            latest_tail_page_number, last_offset = self.tail_page_directory[latest_record_rid]
+            record_to_return = self.tail_pages[latest_tail_page_number].get_record(last_offset, projected_columns_index) 
+        return record_to_return
     
     # DOES NOT WORK FULLY
     def updateRecord(self, page_block_index, record_index, new_rid, *columns):
@@ -102,16 +109,30 @@ class PageRange:
         """
         # Check if the last tail page block has capacity
         if not self.tail_pages or not self.tail_pages[-1].has_capacity():
-            self.tail_pages.append(PageBlock(self.num_columns + 2))
+            self.tail_pages.append(PageBlock(self.num_columns + 3))
         
+        last_record = []
+        last_rid = self.base_pages[page_block_index].column_pages[-2].read(record_index)
+        if last_rid in self.tail_page_directory:
+            last_tail_page_number, last_offset = self.tail_page_directory[last_rid]
+            for i in range(self.num_columns):
+               last_record.append(self.tail_pages[last_tail_page_number].column_pages[i].read(last_offset))
+        else:
+            for i in range(self.num_columns):
+                last_record.append(self.base_pages[page_block_index].column_pages[i].read(record_index))
+
         # Construct the tail record with None for unchanged values and actual values for changed columns
-        tail_record = [None] * self.num_columns
+        tail_record = last_record
         for i, column in enumerate(columns):
             if column is not None:
                 tail_record[i] = column
         
+        tail_record.extend([new_rid, last_rid, 0])
+        
         # Add the tail record to the latest tail page block
-        self.tail_pages[-1].write_tail_record(new_rid, tail_record)
+        self.tail_pages[-1].write(*tail_record)
+        self.tail_page_directory[new_rid] = [len(self.tail_pages) - 1, self.tail_pages[-1].last_written_offset]
+
     
     def update_base_record_indirection(self, new_rid, block_index, record_index):
         self.base_pages[block_index].update_base_record_indirection(new_rid, record_index)

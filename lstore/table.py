@@ -1,7 +1,6 @@
 from lstore.index import Index
 from time import time
 from .page_range import PageRange
-from BTrees.OOBTree import OOBTree
 from avltree import AvlTree
 INDIRECTION_COLUMN = 0
 RID_COLUMN = 1

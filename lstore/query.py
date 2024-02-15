@@ -103,7 +103,6 @@ class Query:
     # Assume that select will never be called on a key that doesn't exist
     """
     def select_version(self, search_key, search_key_column, projected_columns_index, relative_version):
-        pass
         selected_records = []
 
         for record in self.records:
@@ -175,7 +174,6 @@ class Query:
     # Returns False if no record exists in the given range
     """
     def sum_version(self, start_range, end_range, aggregate_column_index, relative_version):
-        pass
         summation = 0
         for record_index in range(start_range, end_range + 1):
             try:

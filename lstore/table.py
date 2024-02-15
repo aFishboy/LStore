@@ -80,7 +80,7 @@ class Table:
             if columns[i] in avl_tree:
                 previous_rids = avl_tree[columns[i]]
             else:
-                previous_rids = []  # Or any default value you want to use
+                previous_rids = []  
             previous_rids.append(new_rid)
             avl_tree[columns[i]] = previous_rids
 
@@ -90,7 +90,6 @@ class Table:
         #     if not self.index.indices[self.key]:
         #         self.index.indices[self.key] = AvlTree()
         #     self.index.indices[self.key][primary_key_value] = new_rid
-
     
     # The method below is marked as "DOES NOT WORK" - it requires validation and testing.
     def update_record(self, primary_key, *columns):
@@ -116,10 +115,33 @@ class Table:
         # Retrieve the page range and record index from the page directory using the located RID
         page_range_index, page_block_index, record_index = self.page_directory[base_rid]
 
+        projected_columns_index = [1] * self.num_columns
+        old_record_entries_to_remove = self.select_records(primary_key, self.key, projected_columns_index)[0].columns
+        for i, value in enumerate(columns):
+            if value != None:
+                avl_tree = self.index.indices[i]
+                previous_rids = avl_tree[old_record_entries_to_remove[i]]
+                previous_rids.remove(base_rid)
+                avl_tree[old_record_entries_to_remove[i]] = previous_rids
+
+
+
+
         # Assuming you have a list of PageRange objects in self.page_ranges
         # Call the updateRecord method on the appropriate PageRange object with the located info
         new_rid = self.generate_rid()
         self.page_ranges[page_range_index].updateRecord(page_block_index, record_index, new_rid, *columns)
+        for i in range(len(columns)):
+            avl_tree = self.index.indices[i]
+            if columns[i] != None:
+                if columns[i] in avl_tree:
+                    previous_rids = avl_tree[columns[i]]
+                else:
+                    previous_rids = []  
+                previous_rids.append(base_rid)
+
+                avl_tree[columns[i]] = previous_rids
+
         self.page_ranges[page_range_index].update_base_record_indirection(new_rid, page_block_index, record_index)
 
         # Update the indirection pointer in the base record
@@ -182,6 +204,8 @@ class Table:
             A list of Record objects containing the data for each selected record.
         """
         base_rids = self.index.locate(search_key_column, search_key)
+        if base_rids == None:
+            return None
         selected_records = []
         for base_rid in base_rids:
             page_range_index, page_block_index, record_index = self.page_directory[base_rid]
@@ -205,19 +229,17 @@ class Table:
         Returns:
             None. Prints a message if the record does not exist.
         """
-         # Check if the record exists
-        if not self.record_exists(key):
-            #print("Record with key {} does not exist.".format(key))
-            return
-        rid = self.index.locate(self.key, key)
-        # Find and remove the record from the data list
-        for i, record in enumerate(self.data):
-            if record.rid == rid:
-                del self.data[i]
-                break
-        # Remove the record from the index
-        self.index.remove(key)
-        #print("Record with key {} deleted successfully.".format(key))
+        base_rid = self.index.locate(self.key, key)[0]
+        projected_columns_index = [1] * self.num_columns
+        record_to_delete = self.select_records(key, self.key, projected_columns_index)[0].columns
+
+        for i in range(self.num_columns):
+            avl_tree = self.index.indices[i]
+            previous_rids = avl_tree[record_to_delete[i]]
+            previous_rids.remove(base_rid)
+            avl_tree[record_to_delete[i]] = previous_rids
+
+
         return
     
     def record_exists(self, key): 

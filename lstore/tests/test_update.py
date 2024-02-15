@@ -47,3 +47,7 @@ class TestUpdate:
         record = query.select(5, 0, [1, 1, 1, 1, 1])[0]
 
         assert record.columns == [5, 160, 175, 180, 195]
+
+        query.delete(5)
+
+        assert 1==2

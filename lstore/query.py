@@ -29,11 +29,13 @@ class Query:
         Returns:
             bool: True if the deletion was successful, False if the record does not exist or is locked.
         """
-        if not self.record_exists(primary_key):
-            return False
-        if self.is_locked(primary_key): #need to add is_locked function
-            return False
-        self.delete_record(primary_key)
+        self.table.delete_record(primary_key)
+
+        # if not self.record_exists(primary_key):
+        #     return False
+        # if self.is_locked(primary_key): #need to add is_locked function
+        #     return False
+        # self.delete_record(primary_key)
         return True    
     
     def insert(self, *columns):
@@ -101,6 +103,7 @@ class Query:
     # Assume that select will never be called on a key that doesn't exist
     """
     def select_version(self, search_key, search_key_column, projected_columns_index, relative_version):
+        pass
         selected_records = []
 
         for record in self.records:
@@ -147,10 +150,17 @@ class Query:
     """
     def sum(self, start_range, end_range, aggregate_column_index):
         total = 0
+        # print(start_range, end_range)
+        projected_columns_index = [None] * self.table.num_columns
+        projected_columns_index[aggregate_column_index] = 1
         for key in range(start_range, end_range + 1):
-            rid = self.table.index.locate(self.table.key, key)
-            if rid is not None:
-                total += self.table.read_record(rid, [aggregate_column_index])[0].columns[0]
+            # rid = self.table.index.locate(self.table.key, key)
+            # if rid is not None:
+            record_result = self.table.select_records(key, self.table.key, projected_columns_index)
+            if record_result == None:
+                continue
+            # print("record_result", record_result[0].columns[0])
+            total += record_result[0].columns[0]
         return total
 
 
@@ -165,6 +175,7 @@ class Query:
     # Returns False if no record exists in the given range
     """
     def sum_version(self, start_range, end_range, aggregate_column_index, relative_version):
+        pass
         summation = 0
         for record_index in range(start_range, end_range + 1):
             try:

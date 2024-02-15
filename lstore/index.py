@@ -25,8 +25,12 @@ class Index:
         #     print("Lookup on non-primary key columns not supported in this context.")
         #     return None
         column_btree = self.indices[column]
-        print(column_btree[value], " Btree")
-        return column_btree[value]
+        try:
+            value = column_btree[value]
+            return value
+        except KeyError:
+            return None
+
 
     def locate_range(self, begin, end, column):
         """

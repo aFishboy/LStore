@@ -64,12 +64,12 @@ class Table:
             total_page_ranges += 1
 
         # Add the new record to the last page range
-        self.page_ranges[-1].addNewRecord(new_rid, *columns)
+        self.page_ranges[-1].addNewRecord(new_rid, *columns)#########################################################################since we have the bitmap need to check pages for open one may be an earlier page that had a delete
 
 
         # Update the page directory with the new record's location
-        self.page_directory[new_rid] = (total_page_ranges - 1, len(self.page_ranges[-1].base_pages) - 1, self.page_ranges[-1].base_pages[-1].last_written_offset)
-
+        self.page_directory[new_rid] = (total_page_ranges - 1, len(self.page_ranges[-1].base_pages) - 1, self.page_ranges[-1].base_pages[-1].last_written_offset)################################################
+###########################################################################################herreeeeeeeeeee
 
         # Update the index for the primary key column with the new RID
         primary_key_value = columns[self.key]
@@ -208,7 +208,7 @@ class Table:
         selected_records = []
         for base_rid in base_rids:
             page_range_index, page_block_index, record_index = self.page_directory[base_rid]
-            returned_records = self.page_ranges[page_range_index].select_records(page_block_index, record_index, projected_columns_index)
+            returned_records = self.page_ranges[page_range_index].select_records(page_block_index, record_index, projected_columns_index)[:-1]
             selected_records.append(returned_records)
 
         record_object_array = []
@@ -232,14 +232,17 @@ class Table:
         projected_columns_index = [1] * self.num_columns
         record_to_delete = self.select_records(key, self.key, projected_columns_index)[0].columns
 
+        # go to each avl index tree and remove rid associated with each key
         for i in range(self.num_columns):
             avl_tree = self.index.indices[i]
             previous_rids = avl_tree[record_to_delete[i]]
             previous_rids.remove(base_rid)
             avl_tree[record_to_delete[i]] = previous_rids
 
+        page_range_index, page_block_index, record_index = self.page_directory[base_rid]
+        self.page_ranges[page_range_index].delete(page_block_index, record_index)
+        del self.page_directory[base_rid]
 
-        return
     
     def record_exists(self, key): 
         """

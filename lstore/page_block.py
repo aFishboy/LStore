@@ -6,6 +6,10 @@ class PageBlock:
         self.column_pages = [Page() for _ in range(self.num_columns)]
         self.records_in_page = 0 # might not need
         self.last_written_offset = 0
+    
+    def delete(self, offset_to_delete):
+        for i in range(self.num_columns):
+            self.column_pages[i].delete(offset_to_delete)
 
     def has_capacity(self):
         if self.column_pages[0].has_capacity():
@@ -26,22 +30,7 @@ class PageBlock:
                 if column_val == 1:    
                     record_to_return.append(self.column_pages[index].read(record_index))
         record_to_return.append(self.column_pages[self.num_columns - 3].read(record_index))
-        
-
-        # column_to_search = self.column_pages[search_key_column]
-        # found_key_offsets = column_to_search.find_key_offsets(search_key)
-        
-        # #print("found keys", found_key_offsets)
-        # records_to_return = []
-        # for offset in found_key_offsets:
-        #     record = []
-        #     for index, column_val in enumerate(projected_columns_index):
-        #         if column_val == 1:    
-        #             record.append(self.column_pages[index].read(offset))
-        #     #print(self.column_pages[self.num_columns - 3].read(offset))
-        #     record.append(self.column_pages[self.num_columns - 3].read(offset))
-        #     records_to_return.append(record)
-        # #print(records_to_return)
+        record_to_return.append(self.column_pages[self.num_columns - 2].read(record_index))
         return record_to_return
     
     # DOES NOT WORK FULLY

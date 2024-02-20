@@ -23,7 +23,6 @@ class PageRange:
         """
         self.num_columns = num_columns
         self.base_pages_per_range = 8
-        self.num_records = 0
         self.base_pages = []
         self.tail_pages = []     
         # Create base pages with RID, indirection, and schema encoding column
@@ -31,6 +30,20 @@ class PageRange:
         self.tail_page_directory = {}   # rid -> (tail page number, offset)
         # Create tail pages with RID and indirection
         self.tail_pages.append(PageBlock(self.num_columns + 3))
+
+    def delete(self, base_page_block_index, base_record_index):
+        projected_columns_index = [1] * self.num_columns
+        current_tail_rid = self.select_records(base_page_block_index, base_record_index, projected_columns_index)[-2]
+        self.base_pages[base_page_block_index].delete(base_record_index)
+        if current_tail_rid not in self.tail_page_directory:
+            return
+        while current_tail_rid != 0:
+            current_tail_block, offset_to_delete = self.tail_page_directory[current_tail_rid]
+            next_tail_rid = self.tail_pages[current_tail_block].get_record(offset_to_delete, projected_columns_index)[-1]
+            self.tail_pages[current_tail_block].delete(offset_to_delete)
+            current_tail_rid = next_tail_rid
+
+
         
 
     def addNewRecord(self, rid, *columns):
@@ -43,7 +56,6 @@ class PageRange:
 
         Note: This function does not handle overflow or check for existing RIDs.
         """
-        self.num_records += 1
         if not self.base_pages[-1].has_capacity():
             # last base page full; create new base page
             self.base_pages.append(PageBlock(self.num_columns + 3))
@@ -87,12 +99,12 @@ class PageRange:
         record_to_return = []
         # if indirection column is 0
         if self.base_pages[base_page_block_index].column_pages[-2].read(record_index) == 0:
-            record_to_return = self.base_pages[base_page_block_index].get_record(record_index, projected_columns_index)
+            record_to_return = self.base_pages[base_page_block_index].get_record(record_index, projected_columns_index) # remove indirection
         else:
             latest_record_rid = self.base_pages[base_page_block_index].column_pages[-2].read(record_index)
             # rid -> (tail page number, offset)
             latest_tail_page_number, last_offset = self.tail_page_directory[latest_record_rid]
-            record_to_return = self.tail_pages[latest_tail_page_number].get_record(last_offset, projected_columns_index) 
+            record_to_return = self.tail_pages[latest_tail_page_number].get_record(last_offset, projected_columns_index) # remove indirection
         return record_to_return
     
     # DOES NOT WORK FULLY
@@ -126,12 +138,11 @@ class PageRange:
         for i, column in enumerate(columns):
             if column is not None:
                 tail_record[i] = column
-        
         tail_record.extend([new_rid, last_rid, 0])
         
         # Add the tail record to the latest tail page block
-        self.tail_pages[-1].write(*tail_record)
-        self.tail_page_directory[new_rid] = [len(self.tail_pages) - 1, self.tail_pages[-1].last_written_offset]
+        self.tail_pages[-1].write(*tail_record)###########################################################since we have the bitmap need to check pages for open one may be an earlier page that had a delete
+        self.tail_page_directory[new_rid] = (len(self.tail_pages) - 1, self.tail_pages[-1].last_written_offset) ###################################################################################
 
     
     def update_base_record_indirection(self, new_rid, block_index, record_index):

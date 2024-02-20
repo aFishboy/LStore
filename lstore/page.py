@@ -6,8 +6,13 @@ class Page:
         self.num_records = 0
         self.data = bytearray(PAGE_DATA_SIZE) # 4096 bytes per page
         self.MAX_RECORDS_PER_PAGE = PAGE_DATA_SIZE // COLUMN_DATA_SIZE # 4096 / 8 = 512
-        self.record_index = {}
-        self.RID = uuid.uuid4()
+        self.bitmap = [0] * self.MAX_RECORDS_PER_PAGE
+        # self.record_index = {}
+        # self.RID = uuid.uuid4()
+
+    def delete(self, offset_to_delete):
+        self.bitmap[offset_to_delete // 8] = 0
+        # self.num_records -= 1 # be better to store at the page_block level need to make this work also
 
     def has_capacity(self) -> bool:
         return self.num_records < self.MAX_RECORDS_PER_PAGE
@@ -16,12 +21,13 @@ class Page:
         return self.num_records * COLUMN_DATA_SIZE
 
     def write(self, value_to_write):
-        write_offset = self.current_offset()
+        write_offset = self.find_next_open_spot()
+        self.bitmap[write_offset // 8] = 1
         if write_offset >= PAGE_DATA_SIZE or write_offset < 0:
             raise IndexError("Attempted to write outside page")
         bytes_to_write = value_to_write.to_bytes(COLUMN_DATA_SIZE, byteorder='little')
         self.data[write_offset:write_offset + COLUMN_DATA_SIZE] = bytes_to_write
-        self.record_index[self.num_records] = self.RID 
+        # self.record_index[self.num_records] = self.RID 
         self.num_records += 1 # might be better to store at the page_block level
 
     def read(self, read_offset) -> int:
@@ -47,13 +53,9 @@ class Page:
     def increment_record_count(self):
         self.num_records += 1
     
-    def find_key_offsets(self, search_key):
-        found_key_offsets = []
-        end_of_written_data_offset = self.current_offset()
-        current_offset = 0
-        while current_offset < end_of_written_data_offset:
-            read_data = self.read(current_offset)
-            if read_data == search_key:
-                found_key_offsets.append(current_offset)
-            current_offset += 8
-        return found_key_offsets
+    def find_next_open_spot(self):
+        bitmap = self.bitmap
+        for index in range(len(bitmap)):
+            if bitmap[index] == 0:
+                return index * 8
+        raise ValueError("No open spot found in the bitmap.")

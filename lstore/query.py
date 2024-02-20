@@ -30,12 +30,6 @@ class Query:
             bool: True if the deletion was successful, False if the record does not exist or is locked.
         """
         self.table.delete_record(primary_key)
-
-        # if not self.record_exists(primary_key):
-        #     return False
-        # if self.is_locked(primary_key): #need to add is_locked function
-        #     return False
-        # self.delete_record(primary_key)
         return True    
     
     def insert(self, *columns):

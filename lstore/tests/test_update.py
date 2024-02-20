@@ -49,5 +49,8 @@ class TestUpdate:
         assert record.columns == [5, 160, 175, 180, 195]
 
         query.delete(5)
+        query.delete(105)
+        query.delete(205)
+
 
         assert 1==2

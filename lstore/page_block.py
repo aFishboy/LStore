@@ -1,4 +1,5 @@
 from .page import Page
+from .config import *
 
 class PageBlock: 
     def __init__(self, num_columns) -> None:
@@ -6,6 +7,10 @@ class PageBlock:
         self.column_pages = [Page() for _ in range(self.num_columns)]
         self.records_in_page = 0 # might not need
         self.last_written_offset = 0
+        self.isFull = False
+        self.MAX_RECORDS_PER_PAGE = PAGE_DATA_SIZE // COLUMN_DATA_SIZE # 4096 / 8 = 512
+        self.bitmap = [0] * self.MAX_RECORDS_PER_PAGE #move to page block level
+
     
     def delete(self, offset_to_delete):
         for i in range(self.num_columns):

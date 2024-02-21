@@ -107,7 +107,6 @@ class PageRange:
             record_to_return = self.tail_pages[latest_tail_page_number].get_record(last_offset, projected_columns_index) # remove indirection
         return record_to_return
     
-    # DOES NOT WORK FULLY
     def updateRecord(self, page_block_index, record_index, new_rid, *columns):
         """
         Updates a record identified by base_rid with new values for specified columns.

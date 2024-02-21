@@ -83,14 +83,6 @@ class Table:
             previous_rids.append(new_rid)
             avl_tree[columns[i]] = previous_rids
 
-
-        # if self.key is not None:  # Ensure that the table has a designated primary key column
-        #     # Check if B-Tree exists for the primary key, initialize if not
-        #     if not self.index.indices[self.key]:
-        #         self.index.indices[self.key] = AvlTree()
-        #     self.index.indices[self.key][primary_key_value] = new_rid
-    
-    # The method below is marked as "DOES NOT WORK" - it requires validation and testing.
     def update_record(self, primary_key, *columns):
         """
         Updates the record with the given primary key to have the new column values specified.

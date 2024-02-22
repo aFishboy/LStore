@@ -1,14 +1,19 @@
+import time
 import uuid
 from .config import *
 
 class Page:
-    def __init__(self):
+    def __init__(self, data):
         self.num_records = 0
-        self.data = bytearray(PAGE_DATA_SIZE) # 4096 bytes per page
         self.MAX_RECORDS_PER_PAGE = PAGE_DATA_SIZE // COLUMN_DATA_SIZE # 4096 / 8 = 512
         self.bitmap = [0] * self.MAX_RECORDS_PER_PAGE #move to page block level
-        # self.record_index = {}
-        # self.RID = uuid.uuid4()
+        self.pinned = 0
+        self.dirty = False
+        self.timestamp = time.time()
+        if data is None:
+            self.data = bytearray(PAGE_DATA_SIZE) # 4096 bytes per page
+        else:
+            self.data = data
 
     def delete(self, offset_to_delete):
         self.bitmap[offset_to_delete // 8] = 0
@@ -28,12 +33,16 @@ class Page:
         bytes_to_write = value_to_write.to_bytes(COLUMN_DATA_SIZE, byteorder='little')
         self.data[write_offset:write_offset + COLUMN_DATA_SIZE] = bytes_to_write
         self.num_records += 1 # might be better to store at the page_block level
+        self.dirty = True
+        self.timestamp = time.time()
+        return True
 
     def read(self, read_offset) -> int:
         if not self.check_valid_offset(read_offset):
             return None
         bytes_read = self.data[read_offset:read_offset + COLUMN_DATA_SIZE]
         converted_data = int.from_bytes(bytes_read, byteorder='little')
+        self.timestamp = time.time()
         return converted_data        
     
     def update_entry(self, offset, value_to_write):
@@ -58,3 +67,27 @@ class Page:
             if bitmap[index] == 0:
                 return index * 8
         raise ValueError("No open spot found in the bitmap.")
+    
+    def is_slot_num_valid(self, slot_num):
+        return 0 <= slot_num < self.MAX_RECORDS_PER_PAGE
+    
+    def get_data(self):
+        return self.data
+    
+    def is_dirty(self):
+        return self.dirt
+    
+    def set_dirty(self):
+        self.dirty = True
+
+    def get_timestamp(self):
+        return self.timestamp
+    
+    def can_evict(self):
+        return self.pinned == 0
+    
+    def pin_page(self):
+        self.pinned += 1
+
+    def unpin_page(self):
+        self.pinned -= 1

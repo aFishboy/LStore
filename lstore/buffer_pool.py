@@ -7,10 +7,10 @@ class BufferPool:
 
     def add_block(self, page):
         if len(self.buffer_blocks) == self.size:
-            self.evict_page()
+            self.evict_block()
         self.buffer_blocks.append(page)
 
-    def evict_page(self):
+    def evict_block(self):
         if self.buffer_blocks:
             evicted_page = self.buffer_blocks.popleft()
             print("Evicted page:", evicted_page)
@@ -18,3 +18,5 @@ class BufferPool:
         else:
             print("Buffer pool is empty.")
             return None
+    
+    def has_capacity(self,)

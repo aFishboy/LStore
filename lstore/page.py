@@ -1,9 +1,10 @@
 import time
+from typing import Union
 import uuid
 from .config import *
 
 class Page:
-    def __init__(self, data):
+    def __init__(self, data: Union[bytearray, None] = None):
         self.num_records = 0
         self.MAX_RECORDS_PER_PAGE = PAGE_DATA_SIZE // COLUMN_DATA_SIZE # 4096 / 8 = 512
         self.bitmap = [0] * self.MAX_RECORDS_PER_PAGE #move to page block level

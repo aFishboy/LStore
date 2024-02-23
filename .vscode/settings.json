@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "avltree",
+        "BUFFERPOOL",
         "lstore"
     ],
     "python.testing.unittestEnabled": false,

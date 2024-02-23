@@ -2,7 +2,7 @@ from .physical_page import PhysicalPage
 import zlib
 import os
 class Disk:
-    def __init__(self,path) -> None:
+    def __init__(self, path) -> None:
         if len(path) > 0 and path[-1] == "/":
             self.path = path[:-1]
         else:

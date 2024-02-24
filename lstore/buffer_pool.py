@@ -57,3 +57,40 @@ class BufferPool:
     def evict_if_bufferpool_full(self):
         if not self.has_capacity():
             self.evict_page()
+
+    """         NEED TO IMPLEMENT (Tristan)     """
+    """ This section is for merging base pages and tail pages
+    Simplest way is to load a copy of all base pages in selected range into memory
+    We can add an extra column to the database, the Base RID column
+    Two copies of the base pages will be kept in memory
+    Implementation of TPS
+    Frequency of merging is up to us though"""
+
+    def get_base_page_range(self, start, end):
+        base_pages = {}
+        for page_id in range(start, end + 1):
+            if self.disk.page_is_base(page_id):
+                base_pages[page_id] = self.get_page(page_id)
+        return base_pages
+
+    def update_base_page_range(self):
+        # base_pages: dict of page_id -> Page objects
+        for page_id, page in base_pages.items():
+            if page.is_dirty():
+                self.disk.write_page(page_id, page)  # Write back to disk if modified.
+                page.set_clean()  # Reset dirty flag after writing.
+
+    def get_tps(self, table_name, column_id, page_range):
+        return self.disk.get_tps(table_name, column_id, page_range)
+
+    def update_tps(self, table_name, column_id, page_range, tps):
+        pass
+
+    def copy_tps(self, old_tps):
+        self.tps = old_tps
+
+    def get_latest_tail(self):
+        pass
+
+    def set_latest_tail(self):
+        pass

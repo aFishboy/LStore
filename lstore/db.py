@@ -1,7 +1,9 @@
 import json
+from lstore.buffer_pool import BufferPool
 from lstore.index import Index
 import os
 from lstore.table import Table
+from .config import *
 
 class Database():
 
@@ -9,6 +11,7 @@ class Database():
         self.path = None
         self.tables = []
         self.num_tables = 0
+        self.bufferpool = None
 
     def open(self, path):
         if os.path.exists(path):
@@ -42,7 +45,9 @@ class Database():
                 print(f"Cannot create table with name {name} \n" +
                        "A table with that name already exists")
                 return
-        table = Table(name, num_columns, key_index)
+        if self.bufferpool is None:
+            self.bufferpool = BufferPool(BUFFERPOOL_SIZE, "")
+        table = Table(name, num_columns, key_index, self.bufferpool)
         self.tables.append(table)
         self.num_tables += 1
         return table

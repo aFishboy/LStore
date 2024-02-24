@@ -2,7 +2,7 @@ from .page import Page
 from .config import *
 
 class PageBlock: 
-    def __init__(self, num_columns) -> None:
+    def __init__(self, num_columns, bufferpool) -> None:
         self.num_columns = num_columns
         self.column_pages = [Page() for _ in range(self.num_columns)]
         self.records_in_page = 0 # might not need
@@ -10,6 +10,10 @@ class PageBlock:
         self.isFull = False
         self.MAX_RECORDS_PER_PAGE = PAGE_DATA_SIZE // COLUMN_DATA_SIZE # 4096 / 8 = 512
         self.bitmap = [0] * self.MAX_RECORDS_PER_PAGE #move to page block level
+        self.page_ids = [self.get_page_id(c) for c in range(self.num_columns)]
+        self.bufferpool = bufferpool
+
+
 
     
     def delete(self, offset_to_delete):
@@ -23,9 +27,9 @@ class PageBlock:
     
     def write(self, *columns):
         # add the record values to pages
-        self.last_written_offset = self.column_pages[0].current_offset()
         for i in range(self.num_columns):
-            self.column_pages[i].write(columns[i])
+            self.bufferpool.write_value(self.page_ids[i], columns[i])
+
             #self.column_pages[i].increment_record_count() # may need to be on the outside of for loop and only happen once idk
     
     def get_record(self, record_index, projected_columns_index):
@@ -57,4 +61,9 @@ class PageBlock:
         for i in range(self.num_columns):
             print(self.column_pages[i].read(record_index), end=' ')
         print("")
+
+    def get_page_id(self, column):
+        page_id = "page_id"  # need to add the table name and other id stuff
+        return page_id
+
     

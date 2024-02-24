@@ -29,7 +29,7 @@ class Table:
     """
     Represents a table within a database, capable of performing operations such as insert, read, update, and delete on records.
     """
-    def __init__(self, name, num_columns, key):
+    def __init__(self, name, num_columns, key, bufferpool):
         """
         Initializes the Table with basic information and structures for storing records.
 
@@ -47,6 +47,7 @@ class Table:
         self.last_rid = -1
         self.page_directory = {} # maps RID to tuple, (What page_range, !!!NEED TO ALSO HAVE PAGE BLOCK!!!!, what record location in page) 
         # Tracks the location of records within page ranges.
+        self.bufferpool = bufferpool
 
     def insert_record(self, *columns):
         """
@@ -60,7 +61,7 @@ class Table:
 
         # Check if there is an existing page range with capacity or create a new one
         if total_page_ranges == 0 or not self.page_ranges[-1].has_capacity():
-            self.page_ranges.append(PageRange(self.num_columns))
+            self.page_ranges.append(PageRange(self.num_columns, self.bufferpool))
             total_page_ranges += 1
 
         # Add the new record to the last page range

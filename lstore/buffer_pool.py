@@ -11,14 +11,14 @@ class BufferPool:
         self.buffer_pages = {}  # page id -> page object
         self.disk = Disk(path)
     
-    def write_value(self, page_id, value_to_write, write_offset):
+    def write_value(self, page_id, value_to_write):
         current_page = self.get_page(page_id)
         if current_page == None:
-            current_page = self.add_page()
+            current_page = self.add_page(page_id)
 
         current_page.pin_page()
         current_page.set_dirty()
-        current_page.insert_value(value_to_write, write_offset)
+        current_page.write(value_to_write)
 
         current_page.unpin_page()
         return True

@@ -14,7 +14,7 @@ class PageRange:
         tail_pages (list): A list of PageBlocks representing the tail (update) records.
         tail_page_directory (dict): A mapping of RID to tail page number and offset within that page.
     """
-    def __init__(self, num_columns) -> None:
+    def __init__(self, num_columns, bufferpool) -> None:
         """
         Initializes a new instance of the PageRange class.
 
@@ -26,10 +26,11 @@ class PageRange:
         self.base_pages = []
         self.tail_pages = []     
         # Create base pages with RID, indirection, and schema encoding column
-        self.base_pages.append(PageBlock(self.num_columns + 3)) 
+        self.base_pages.append(PageBlock(self.num_columns + 3, bufferpool)) 
         self.tail_page_directory = {}   # rid -> (tail page number, offset)
         # Create tail pages with RID and indirection
-        self.tail_pages.append(PageBlock(self.num_columns + 3))
+        self.tail_pages.append(PageBlock(self.num_columns + 3, bufferpool))
+        self.bufferpool = bufferpool
 
     def delete(self, base_page_block_index, base_record_index):
         projected_columns_index = [1] * self.num_columns
@@ -58,7 +59,7 @@ class PageRange:
         """
         if not self.base_pages[-1].has_capacity():
             # last base page full; create new base page
-            self.base_pages.append(PageBlock(self.num_columns + 3))
+            self.base_pages.append(PageBlock(self.num_columns + 3, self.bufferpool))
 
         base_page_to_write = self.base_pages[-1]
         
@@ -120,7 +121,7 @@ class PageRange:
         """
         # Check if the last tail page block has capacity
         if not self.tail_pages or not self.tail_pages[-1].has_capacity():
-            self.tail_pages.append(PageBlock(self.num_columns + 3))
+            self.tail_pages.append(PageBlock(self.num_columns + 3, self.bufferpool))
         
         last_record = []
         last_rid = self.base_pages[page_block_index].column_pages[-2].read(record_index)
@@ -208,7 +209,7 @@ class PageRange:
     def add_tail_record(self, rid, updated_columns):
         if not self.tail_pages or not self.tail_pages[-1].has_capacity():
             # If not, create a new tail page block
-            self.tail_pages.append(PageBlock(self.num_columns + 3))
+            self.tail_pages.append(PageBlock(self.num_columns + 3, self.bufferpool))
         
         # Now, we are sure that the last tail page block has capacity, add the tail record
         self.tail_pages[-1].write_tail_record(rid, updated_columns)

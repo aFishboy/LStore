@@ -330,6 +330,19 @@ class Table:
         self.update_indirection(base_rid, tail_rid)
         return True
 
+    def get_all_records(self):
+        """
+        Returns all records in the table.
+
+        Returns:
+            A list of all records in the table.
+        """
+        all_records = []
+        for page_range in self.page_ranges:
+            for base_page in page_range.base_pages:
+                for record in base_page.records:
+                    all_records.append(record)
+        return all_records
     
     def __merge(self):
         #print("merge is happening")

@@ -11,6 +11,7 @@ class Database():
         self.tables = []
         self.num_tables = 0
         self.bufferpool = None
+        self.name = None
 
     def open(self, path):
         if os.path.exists(path):
@@ -23,6 +24,9 @@ class Database():
         else:
             print(path, " not found")
             pass
+            
+        if self.bufferpool is None:
+            self.bufferpool = BufferPool(BUFFERPOOL_SIZE, path, self.name)
 
     def close(self):
         filename = 'database_info.txt'
@@ -36,6 +40,11 @@ class Database():
                 f.write(f"Page Index: {table.page_index}\n\n")
         for table in self.tables:
             table.close()
+            
+        # Ensure the buffer pool also properly flushes any remaining dirty pages and closes any open files.
+        if self.bufferpool is not None:
+            self.bufferpool.close()
+            self.bufferpool = None
 
         
 
@@ -54,8 +63,9 @@ class Database():
                        "A table with that name already exists")
                 return
         if self.bufferpool is None:
-            self.bufferpool = BufferPool(BUFFERPOOL_SIZE, "")
+            self.bufferpool = BufferPool(BUFFERPOOL_SIZE, self.path, name)
         table = Table(name, num_columns, key_index, self.bufferpool)
+        self.name = name
         self.tables.append(table)
         self.num_tables += 1
         return table

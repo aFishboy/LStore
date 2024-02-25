@@ -2,7 +2,7 @@ from .page import Page
 from .config import *
 
 class PageBlock: 
-    def __init__(self, num_columns, bufferpool) -> None:
+    def __init__(self, num_columns, bufferpool, table_name) -> None:
         self.num_columns = num_columns
         self.column_pages = [Page() for _ in range(self.num_columns)]
         self.records_in_page = 0 # might not need
@@ -12,10 +12,9 @@ class PageBlock:
         self.bitmap = [0] * self.MAX_RECORDS_PER_PAGE #move to page block level
         self.page_ids = [self.get_page_id(c) for c in range(self.num_columns)]
         self.bufferpool = bufferpool
+        self.table_name = table_name
 
 
-
-    
     def delete(self, offset_to_delete):
         for i in range(self.num_columns):
             self.column_pages[i].delete(offset_to_delete)
@@ -62,8 +61,8 @@ class PageBlock:
             print(self.column_pages[i].read(record_index), end=' ')
         print("")
 
-    def get_page_id(self, column):
-        page_id = "page_id"  # need to add the table name and other id stuff
+    def get_page_id(self, column_number):
+        page_id = self.table_name + "!" + "rid need to add!!!"  # need to add the table name and other id stuff
         return page_id
 
     

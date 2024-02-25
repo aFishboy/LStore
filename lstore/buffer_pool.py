@@ -4,12 +4,13 @@ from lstore.page import Page
 from .config import *
 
 class BufferPool:
-    def __init__(self, size, path):
+    def __init__(self, size, path, table_name):
         if path != "":
             os.makedirs(path, exist_ok=True)
         self.buffer_pool_size = BUFFERPOOL_SIZE
         self.buffer_pages = {}  # page id -> page object
         self.disk = Disk(path)
+        self.table_name = table_name
     
     def write_value(self, page_id, value_to_write):
         current_page = self.get_page(page_id)
@@ -57,6 +58,7 @@ class BufferPool:
     def evict_if_bufferpool_full(self):
         if not self.has_capacity():
             self.evict_page()
+
 
     """         NEED TO IMPLEMENT (Tristan)     """
     """ This section is for merging base pages and tail pages

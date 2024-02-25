@@ -1,4 +1,3 @@
-import json
 from lstore.buffer_pool import BufferPool
 from lstore.index import Index
 import os
@@ -18,18 +17,27 @@ class Database():
             self.prev_path = os.getcwd()
             os.chdir(path)
             if os.path.exists('database.json'):
-                with open('database.json', 'r') as file:
-                    self.tables = json.load(file)
+                with open('database.txt', 'r') as file:
+                    pass
+                    
         else:
             print(path, " not found")
             pass
 
     def close(self):
+        filename = 'database_info.txt'
+        with open(filename, 'w') as f:
+            f.write("aaaaaaaaaaaaaaaaaaaaaaaaajhsflkjshdflksjdfhlskdjfhsdlkfjhtest")
+            for table in self.tables:
+                f.write(f"Table Name: {table.name}\n")
+                f.write(f"Number of Columns: {table.num_columns}\n")
+                f.write(f"Key Index: {table.key_index}\n")
+                f.write(f"Number of Pages: {table.num_pages}\n")
+                f.write(f"Page Index: {table.page_index}\n\n")
         for table in self.tables:
             table.close()
 
-        with open('database.json', 'w') as f:
-            json.dump(self.tables, f, indent=4)
+        
 
 
     """

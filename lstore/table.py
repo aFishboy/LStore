@@ -44,7 +44,8 @@ class Table:
         self.data = [] # Note: It seems this is not used
         self.index = Index(self)
         self.page_ranges = [] 
-        self.last_rid = -1
+        self.last_base_rid = -1
+        self.last_tail_rid = -1
         self.page_directory = {} # maps RID to tuple, (What page_range, !!!NEED TO ALSO HAVE PAGE BLOCK!!!!, what record location in page) 
         # Tracks the location of records within page ranges.
         self.bufferpool = bufferpool
@@ -57,11 +58,11 @@ class Table:
             *columns: Variable length argument list for column values of the new record.
         """
         total_page_ranges = len(self.page_ranges)
-        new_rid = self.generate_rid()
+        new_rid = self.generate_base_rid()
 
         # Check if there is an existing page range with capacity or create a new one
         if total_page_ranges == 0 or not self.page_ranges[-1].has_capacity():
-            self.page_ranges.append(PageRange(self.num_columns, self.bufferpool))
+            self.page_ranges.append(PageRange(self.num_columns, self.bufferpool, self.name))
             total_page_ranges += 1
 
         # Add the new record to the last page range
@@ -121,7 +122,7 @@ class Table:
 
         # Assuming you have a list of PageRange objects in self.page_ranges
         # Call the updateRecord method on the appropriate PageRange object with the located info
-        new_rid = self.generate_rid()
+        new_rid = self.generate_tail_rid()
         self.page_ranges[page_range_index].updateRecord(page_block_index, record_index, new_rid, *columns)
         for i in range(len(columns)):
             avl_tree = self.index.indices[i]
@@ -262,15 +263,25 @@ class Table:
         else:
             return False  # Default assumption: record is not locked if not found in the dictionary
 
-    def generate_rid(self):
+    def generate_base_rid(self):
         """
         Generates a unique record identifier (RID) for new records.
 
         Returns:
             An integer representing the new RID.
         """
-        self.last_rid += 1
-        return self.last_rid
+        self.last_base_rid += 1
+        return self.last_base_rid
+    
+    def generate_tail_rid(self):
+        """
+        Generates a unique record identifier (RID) for new records.
+
+        Returns:
+            An integer representing the new RID.
+        """
+        self.last_tail_rid += 1
+        return self.last_tail_rid
     
     
     def update_indirection(self, base_rid, new_tail_rid):
@@ -309,7 +320,7 @@ class Table:
         page_range = self.page_ranges[page_range_index]
 
         # Create and add the new tail record.
-        tail_rid = self.generate_rid()
+        tail_rid = self.generate_tail_rid()
         print(f"Type of new_tail_rid: {type(tail_rid)}, Value: {tail_rid}")
         success = page_range.add_tail_record(tail_rid, updated_columns)
         if not success:

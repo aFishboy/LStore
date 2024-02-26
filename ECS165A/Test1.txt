@@ -1,0 +1,44 @@
+table meta data csv row eg page directory
+tail page directory serialized 
+bp1
+bp2
+.
+.
+.
+bp8
+tp1
+tp2
+tp3
+.
+.
+.
+tp24
+!^!
+bp1
+bp2
+.
+.
+.
+bp8
+tp1
+tp2
+tp3
+.
+.
+.
+tp24
+tail page directory serialized 
+!^!
+bp1
+bp2
+.
+.
+.
+bp8
+tp1
+tp2
+tp3
+.
+.
+.
+tp24

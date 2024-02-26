@@ -2,7 +2,7 @@ import os
 from lstore.disk import Disk
 from lstore.page import Page
 from .config import *
-
+# change to pull in page ranges not just pages 
 class BufferPool:
     def __init__(self, size, path, table_name):
         if path != "":

@@ -13,27 +13,16 @@ class Database():
         self.table_names = []
         self.num_tables = 0
         self.bufferpool = None
-        self.name = None
+        self.base_path = None
         
     def open(self, path):
         self.path = path
         if not os.path.exists(path):
             os.makedirs(path)  # Create the directory if it doesn't exist
-        
-        prev_path = os.getcwd()
+        self.base_path = os.getcwd()
         os.chdir(path)
-        database_file = "db.txt"
-        if os.path.exists(database_file):
-            print(" database file exists:", database_file)
-            # File exists, read the table names
-            self.table_names = self.read_table_names(database_file)
-        else:
-            # File does not exist, create it with default data or an empty state
-            print("Creating database file:", database_file)
-            with open(database_file, 'w') as file:
-                pass
-            self.table_names = []
-            print("Database file created.")
+
+        
         print(self.table_names)
 
         #     if self.bufferpool is None:
@@ -102,6 +91,20 @@ class Database():
     """
     # Create table may be done makes the table and adds it to self.tables and returns table when done
     def create_table(self, name, num_columns, key_index):
+
+        table_file_name = name + ".txt"
+        if os.path.exists(table_file_name):
+            print(" table_file exists:", table_file_name)
+            # File exists, read the table names
+            self.table_names = self.read_table_names(table_file_name)
+        else:
+            # File does not exist, create it with default data or an empty state
+            print("Creating table_file:", table_file_name)
+            with open(table_file_name, 'w') as file:
+                pass
+            self.table_names.append(table_file_name)
+            print("table_file created.")
+
         for table in self.tables:
             if name == table.name:
                 print(f"Cannot create table with name {name} \n" +
@@ -110,7 +113,6 @@ class Database():
         if self.bufferpool is None:
             self.bufferpool = BufferPool(BUFFERPOOL_SIZE, self.path, name)
         table = Table(name, num_columns, key_index, self.bufferpool)
-        self.name = name
         self.tables.append(table)
         self.num_tables += 1
         return table

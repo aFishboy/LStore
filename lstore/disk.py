@@ -1,3 +1,4 @@
+import csv
 import zlib
 import os
 from lstore.page import Page
@@ -33,3 +34,25 @@ class Disk:
     def make_file_name(self, page_id):
         file_name_to_return = self.path + "/" + page_id
         return file_name_to_return
+    
+    def write_table_metadata(self, table_file_name, num_columns, key_index):
+        with open(table_file_name, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([table_file_name, num_columns, key_index])
+    
+    def get_rid_data(self):
+        with open("data_base_rid_data.csv", 'a+', newline='') as file:
+            reader = csv.reader(file)
+            first_row = next(reader, [])  # Get the first row or an empty list if file is empty
+            if not first_row:  # Check if the first row is empty
+                return -1, 0
+            else:
+                # Extract the values from the first row
+                last_base_rid, last_tail_rid = map(int, first_row)
+                return last_base_rid, last_tail_rid
+
+    def store_rid_data(self, last_base_rid, last_tail_rid):
+        with open("data_base_rid_data.csv", 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([last_base_rid, last_tail_rid])
+

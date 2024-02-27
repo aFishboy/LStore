@@ -29,7 +29,7 @@ class Table:
     """
     Represents a table within a database, capable of performing operations such as insert, read, update, and delete on records.
     """
-    def __init__(self, name, num_columns, key, bufferpool):
+    def __init__(self, name, num_columns, key):
         """
         Initializes the Table with basic information and structures for storing records.
 
@@ -39,16 +39,19 @@ class Table:
             key (int): The index of the column that acts as the primary key.
         """
         self.name = name
-        self.key = key
         self.num_columns = num_columns
+        self.key = key
         self.data = [] # Note: It seems this is not used
         self.index = Index(self)
         self.page_ranges = [] 
-        self.last_base_rid = -1
-        self.last_tail_rid = -1
+        # self.last_base_rid = -1
+        # self.last_tail_rid = -1
         self.page_directory = {} # maps RID to tuple, (What page_range, !!!NEED TO ALSO HAVE PAGE BLOCK!!!!, what record location in page) 
         # Tracks the location of records within page ranges.
-        self.bufferpool = bufferpool
+        # self.bufferpool = bufferpool
+
+    def __str__(self):
+        return f"Table: {self.name}, Columns: {self.num_columns}, Primary Key Index: {self.key}"
 
     def insert_record(self, *columns):
         """

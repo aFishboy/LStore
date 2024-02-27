@@ -5,8 +5,6 @@ from .config import *
 # change to pull in page ranges not just pages 
 class BufferPool:
     def __init__(self, size, path, table_name):
-        if path != "":
-            os.makedirs(path, exist_ok=True)
         self.buffer_pool_size = BUFFERPOOL_SIZE
         self.buffer_pages = {}  # page id -> page object
         self.disk = Disk(path)

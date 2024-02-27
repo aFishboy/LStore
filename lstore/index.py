@@ -6,8 +6,8 @@ from .page import Page
 
 class Index:
 
-    def __init__(self, table):
-        self.indices = [AvlTree() for _ in range(table.num_columns)]  # Initialize each column's index as an OOBTree
+    def __init__(self, table, list_of_AvlTrees):
+        self.indices = [list_of_AvlTrees[i] for i in range(table.num_columns)]  # Initialize each column's index as an OOBTree
         self.key = table.key
         self.column_num = dict()
         self.table = table

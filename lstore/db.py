@@ -13,7 +13,6 @@ class Database():
     def __init__(self):
         self.path = None
         self.tables = []
-        self.table_names = []
         self.current_table_metadata = None
         self.num_tables = 0
         self.bufferpool = None
@@ -33,17 +32,26 @@ class Database():
         print(self.path)
         files = os.listdir(os.getcwd())  # Get a list of all files and directories in the current directory
         for file_to_open in files:
-            if file_to_open == "data_base_rid_data.csv":
+            print("files", files)
+            if file_to_open == "data_base_rid_data.txt":
+                print("not valid table file")
                 continue
-            with open(file_to_open, 'r', newline='') as opened_file:
-                reader = csv.reader(opened_file)
-                first_row = next(reader, [])  # Get the first row or an empty list if file is empty
-                if not first_row:  # Check if the first row is empty
-                    raise ValueError("The first row of the file '{}' is empty.".format(file_to_open))
+            with open(file_to_open, 'r') as opened_file:
+                first_row = opened_file.readline().strip()
+                print("first row", first_row)
+                if not first_row:  # Check if the first line is empty
+                    raise ValueError(f"The first line of the file '{file_to_open}' is empty.")
                 else:
-                    # Extract the values from the first row
-                    table_name, num_columns, key_index = first_row[0], int(first_row[1]), int(first_row[2])
+                    print("found valid table")
+                    elements = first_row.split(',')
+                    print("len elem", len(elements))
+                    if len(elements) != 3:
+                        raise ValueError(f"Invalid format in the first line of the file '{file_to_open}'.")
+                    table_name, num_columns, key_index = elements
+                    print("table name",table_name)
                     self.tables.append(Table(table_name, num_columns, key_index))
+                    self.tables[-1].read_index(opened_file, self.disk) 
+                    # prob pass in opened_file^^^^^^^^ instead of reader ^^^^^^^^^^^^^^^^^^^^^^^^
 
         for table in self.tables:
             print(str(table))
@@ -105,6 +113,9 @@ class Database():
             self.bufferpool = None
         
         self.rid_gen.store_rid_data(self.disk)
+        print("length tables", len(self.tables))
+        for table in self.tables:
+            self.disk.write_table_metadata(table)
 
         
 
@@ -118,7 +129,7 @@ class Database():
     # Create table may be done makes the table and adds it to self.tables and returns table when done
     def create_table(self, name, num_columns, key_index):
 
-        table_file_name = name + ".csv"
+        table_file_name = name + ".txt"
         if os.path.exists(table_file_name):
             print("table_file exists:", table_file_name)
             # File exists, read the table names
@@ -128,17 +139,14 @@ class Database():
             print("Creating table_file:", table_file_name)
             with open(table_file_name, 'w') as file:
                 pass
-            self.disk.write_table_metadata(table_file_name, num_columns, key_index)
-            self.table_names.append(table_file_name)
+            self.tables.append(Table(table_file_name, num_columns, key_index))
             print("table_file created.")
 
         
         if self.bufferpool is None:
             self.bufferpool = BufferPool(BUFFERPOOL_SIZE, self.path, name)
-        table = Table(name, num_columns, key_index)
-        self.tables.append(table)
         self.num_tables += 1
-        return table
+        return self.tables[-1]
 
     
     """

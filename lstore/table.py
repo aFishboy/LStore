@@ -41,9 +41,9 @@ class Table:
         self.name = name
         self.num_columns = num_columns
         self.key = key
-        self.data = [] # Note: It seems this is not used
-        self.index = Index(self)
-        self.page_ranges = [] 
+        # self.data = [] # Note: It seems this is not used
+        self.index = None #self.read_index()
+        # self.page_ranges = [] 
         # self.last_base_rid = -1
         # self.last_tail_rid = -1
         self.page_directory = {} # maps RID to tuple, (What page_range, !!!NEED TO ALSO HAVE PAGE BLOCK!!!!, what record location in page) 
@@ -70,7 +70,7 @@ class Table:
 
         # Add the new record to the last page range
         self.page_ranges[-1].addNewRecord(new_rid, *columns)#########################################################################since we have the bitmap need to check pages for open one may be an earlier page that had a delete
-
+        # current_page_range = self.bufferpool.get_page_range() *********************************************************************
 
         # Update the page directory with the new record's location
         self.page_directory[new_rid] = (total_page_ranges - 1, len(self.page_ranges[-1].base_pages) - 1, self.page_ranges[-1].base_pages[-1].last_written_offset)################################################
@@ -87,6 +87,12 @@ class Table:
                 previous_rids = []  
             previous_rids.append(new_rid)
             avl_tree[columns[i]] = previous_rids
+    
+    def read_index(self, opened_file, disk):
+        # read index return a list of AvlTree objects and pass that list
+        list_of_AvlTrees = disk.read_index(opened_file)
+        self.index = Index(self, list_of_AvlTrees)
+
 
     def update_record(self, primary_key, *columns):
         """

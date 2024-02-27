@@ -1,7 +1,11 @@
 import csv
+import linecache
 import zlib
 import os
 from lstore.page import Page
+from lstore.table import Table
+
+# line = linecache.getline(thefilename, 2)
 
 class Disk:
     def __init__(self, path) -> None:
@@ -35,13 +39,24 @@ class Disk:
         file_name_to_return = self.path + "/" + page_id
         return file_name_to_return
     
-    def write_table_metadata(self, table_file_name, num_columns, key_index):
-        with open(table_file_name, 'w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([table_file_name, num_columns, key_index])
+    def write_table_metadata(self, table):
+        table_file_name = table.name
+        print("disk table name", table_file_name)
+        num_columns = table.num_columns 
+        key_index = table.key
+        new_first_line = f"{table_file_name},{num_columns},{key_index}".ljust(50)
+
+        with open(table_file_name, 'r+') as file:
+            # Move the file pointer to the beginning
+            file.seek(0)
+            buffer = file.read(50)
+            file.seek(0)
+            # Write the modified first line
+            file.write(new_first_line)
+            # Truncate the remaining content (in case the new line is shorter than the old one)
     
     def get_rid_data(self):
-        with open("data_base_rid_data.csv", 'a+', newline='') as file:
+        with open("data_base_rid_data.txt", 'a+', newline='') as file:
             reader = csv.reader(file)
             first_row = next(reader, [])  # Get the first row or an empty list if file is empty
             if not first_row:  # Check if the first row is empty
@@ -52,7 +67,7 @@ class Disk:
                 return last_base_rid, last_tail_rid
 
     def store_rid_data(self, last_base_rid, last_tail_rid):
-        with open("data_base_rid_data.csv", 'w', newline='') as file:
+        with open("data_base_rid_data.txt", 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([last_base_rid, last_tail_rid])
 

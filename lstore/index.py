@@ -11,6 +11,9 @@ class Index:
         self.key = table.key
         self.column_num = dict()
         self.table = table
+    
+    def __str__(self):
+        return ''.join(str(avl_tree) for avl_tree in self.indices)
 
     """
     # returns the location of all records with the given value on column "column"

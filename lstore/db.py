@@ -29,28 +29,25 @@ class Database():
         os.chdir(path)
 
         self.rid_gen = RidGen(self.disk)
-        print(self.path)
         files = os.listdir(os.getcwd())  # Get a list of all files and directories in the current directory
         for file_to_open in files:
-            print("files", files)
             if file_to_open == "data_base_rid_data.txt":
                 print("not valid table file")
                 continue
             with open(file_to_open, 'r') as opened_file:
                 first_row = opened_file.readline().strip()
-                print("first row", first_row)
                 if not first_row:  # Check if the first line is empty
                     raise ValueError(f"The first line of the file '{file_to_open}' is empty.")
                 else:
                     print("found valid table")
                     elements = first_row.split(',')
-                    print("len elem", len(elements))
                     if len(elements) != 3:
                         raise ValueError(f"Invalid format in the first line of the file '{file_to_open}'.")
                     table_name, num_columns, key_index = elements
-                    print("table name",table_name)
-                    self.tables.append(Table(table_name, num_columns, key_index))
-                    self.tables[-1].read_index(opened_file, self.disk) 
+                    self.tables.append(Table(table_name, int(num_columns), int(key_index)))
+                    self.tables[-1].read_index(file_to_open, self.disk) 
+                    self.tables[-1].read_page_directory(file_to_open, self.disk) 
+
                     # prob pass in opened_file^^^^^^^^ instead of reader ^^^^^^^^^^^^^^^^^^^^^^^^
 
         for table in self.tables:
@@ -113,7 +110,6 @@ class Database():
             self.bufferpool = None
         
         self.rid_gen.store_rid_data(self.disk)
-        print("length tables", len(self.tables))
         for table in self.tables:
             self.disk.write_table_metadata(table)
 
@@ -132,8 +128,8 @@ class Database():
         table_file_name = name + ".txt"
         if os.path.exists(table_file_name):
             print("table_file exists:", table_file_name)
-            # File exists, read the table names
-            # self.table_names = self.read_table_names(table_file_name)
+            print("Table file already exists: {}".format(table_file_name))
+            return
         else:
             # File does not exist, create it with default data or an empty state
             print("Creating table_file:", table_file_name)
@@ -141,11 +137,8 @@ class Database():
                 pass
             self.tables.append(Table(table_file_name, num_columns, key_index))
             print("table_file created.")
-
-        
-        if self.bufferpool is None:
-            self.bufferpool = BufferPool(BUFFERPOOL_SIZE, self.path, name)
-        self.num_tables += 1
+        self.tables[-1].read_index(None, self.disk) 
+        self.tables[-1].read_page_directory(None, self.disk) 
         return self.tables[-1]
 
     

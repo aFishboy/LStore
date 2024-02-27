@@ -1,11 +1,13 @@
 import csv
 import linecache
+import re
 import zlib
 import os
 from lstore.page import Page
 from lstore.table import Table
+from avltree import AvlTree
 
-# line = linecache.getline(thefilename, 2)
+
 
 class Disk:
     def __init__(self, path) -> None:
@@ -44,7 +46,9 @@ class Disk:
         print("disk table name", table_file_name)
         num_columns = table.num_columns 
         key_index = table.key
-        new_first_line = f"{table_file_name},{num_columns},{key_index}".ljust(50)
+        file_metadata = f"{table_file_name},{num_columns},{key_index}".ljust(50)
+        file_metadata = file_metadata + '\n' + str(table.index)
+        file_metadata = file_metadata + '\n' + str(table.page_directory)
 
         with open(table_file_name, 'r+') as file:
             # Move the file pointer to the beginning
@@ -52,7 +56,7 @@ class Disk:
             buffer = file.read(50)
             file.seek(0)
             # Write the modified first line
-            file.write(new_first_line)
+            file.write(file_metadata)
             # Truncate the remaining content (in case the new line is shorter than the old one)
     
     def get_rid_data(self):
@@ -70,4 +74,30 @@ class Disk:
         with open("data_base_rid_data.txt", 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([last_base_rid, last_tail_rid])
+    
+    def read_index(self, file_name, num_columns):
+        line = linecache.getline(file_name, 2) # NOT ZERO INDEXED
+        if line == "":
+            print("made it")
+            list_of_avls = [AvlTree() for _ in range(num_columns)]
+            return list_of_avls
+        list_of_strings = self.extract_data_from_string(line)
+        list_of_dicts = []
+        for string in list_of_strings:
+            list_of_dicts.append(eval(string))
+        list_of_avls = []
+        for dict in list_of_dicts:
+            list_of_avls.append(AvlTree(dict))
+        return list_of_avls
+    
+    def read_page_directory(self, file_name):
+        line = linecache.getline(file_name, 3) # NOT ZERO INDEXED
+        return line
+        
+    
+    def extract_data_from_string(self, string):
+        pattern = r'AvlTree\((.*?)\)'  # Define the regular expression pattern to match the AvlTree data
+        data_list = re.findall(pattern, string)  # Find all matches of the pattern in the string
+        return data_list
+
 

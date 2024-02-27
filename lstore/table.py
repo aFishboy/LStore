@@ -88,10 +88,27 @@ class Table:
             previous_rids.append(new_rid)
             avl_tree[columns[i]] = previous_rids
     
-    def read_index(self, opened_file, disk):
+    def read_index(self, file_name, disk):
         # read index return a list of AvlTree objects and pass that list
-        list_of_AvlTrees = disk.read_index(opened_file)
+        print("index",self.index)
+        if file_name == None:
+            list_of_AvlTrees = [AvlTree() for _ in range(self.num_columns)]
+            print("list_of_AvlTrees",list_of_AvlTrees)
+        else:
+            list_of_AvlTrees = disk.read_index(file_name, self.num_columns)
+            print("list",list_of_AvlTrees)
         self.index = Index(self, list_of_AvlTrees)
+
+
+    
+    def read_page_directory(self, file_name, disk):
+        if file_name == None:
+            page_directory_string = {}
+        else:
+            # read index return a list of AvlTree objects and pass that list
+            page_directory_string = disk.read_page_directory(file_name)
+            self.page_directory = eval(page_directory_string)
+
 
 
     def update_record(self, primary_key, *columns):

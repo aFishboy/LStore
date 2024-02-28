@@ -47,8 +47,8 @@ class Table:
         # self.data = [] # Note: It seems this is not used
         self.index = None #self.read_index()
         # self.page_ranges = [] 
-        # self.last_base_rid = -1
-        # self.last_tail_rid = -1
+        self.last_base_rid = -1  #why is this removed
+        self.last_tail_rid = -1  #why is this removed
         self.page_directory = {} # maps RID to tuple, (What page_range, !!!NEED TO ALSO HAVE PAGE BLOCK!!!!, what record location in page)
         self.total_page_ranges = total_page_ranges
         self.rid_gen = rid_gen
@@ -160,7 +160,7 @@ class Table:
         # Assuming you have a list of PageRange objects in self.page_ranges
         # Call the updateRecord method on the appropriate PageRange object with the located info
         new_rid = self.generate_tail_rid()
-        self.page_ranges[page_range_index].updateRecord(page_block_index, record_index, new_rid, *columns)
+        self.bufferpool.get_page_range(page_range_index).updateRecord(page_block_index, record_index, new_rid, *columns)
         for i in range(len(columns)):
             avl_tree = self.index.indices[i]
             if columns[i] != None:
@@ -172,7 +172,7 @@ class Table:
 
                 avl_tree[columns[i]] = previous_rids
 
-        self.page_ranges[page_range_index].update_base_record_indirection(new_rid, page_block_index, record_index)
+        self.bufferpool.get_page_range(page_range_index).update_base_record_indirection(new_rid, page_block_index, record_index)
 
         # Update the indirection pointer in the base record
         return True
@@ -200,11 +200,11 @@ class Table:
         page_range_index, base_page_index = self.page_directory[rid]
 
         # Access the corresponding PageRange object
-        if page_range_index >= len(self.page_ranges) or base_page_index >= len(self.page_ranges[page_range_index].base_pages):
+        if page_range_index >= len(self.bufferpool.get_page_range(page_range_index)) or base_page_index >= len(self.bufferpool.get_page_range(page_range_index).base_pages):
             print(f"Page range or base page index out of bounds.")
             return None
 
-        page_range = self.page_ranges[page_range_index]
+        page_range = self.bufferpool.get_page_range(page_range_index)
         base_page = page_range.base_pages[base_page_index]
 
         # Assuming you have a method to iterate over records in the base_page and find one by RID
@@ -239,7 +239,9 @@ class Table:
         selected_records = []
         for base_rid in base_rids:
             page_range_index, page_block_index, record_index = self.page_directory[base_rid]
-            returned_records = self.page_ranges[page_range_index].select_records(page_block_index, record_index, projected_columns_index)[:-1]
+            returned_records = self.bufferpool.get_page_range(page_range_index).select_records(page_block_index, record_index, projected_columns_index)[:-1]
+            #returned_records = self.page_ranges[page_range_index].select_records(page_block_index, record_index, projected_columns_index)[:-1]
+            
             selected_records.append(returned_records)
 
         record_object_array = []
@@ -271,7 +273,7 @@ class Table:
             avl_tree[record_to_delete[i]] = previous_rids
 
         page_range_index, page_block_index, record_index = self.page_directory[base_rid]
-        self.page_ranges[page_range_index].delete(page_block_index, record_index)
+        self.bufferpool.get_page_range(page_range_index).delete(page_block_index, record_index)
         del self.page_directory[base_rid]
 
     
@@ -334,8 +336,7 @@ class Table:
         """
         # Assuming the page_directory maps RIDs to their page range and page block locations
         page_range_index, page_block_index = self.page_directory[base_rid]
-        page_range = self.page_ranges[page_range_index]
-
+        page_range = self.bufferpool.get_page_range(page_range_index)
         # Call a method on the page range to update the indirection
         page_range.update_base_record_indirection(base_rid, new_tail_rid)
 
@@ -354,7 +355,7 @@ class Table:
         # Locate the base record and its page range.
         print(f"Type of base_rid: {type(base_rid)}, Value: {base_rid}")
         page_range_index, _ = self.page_directory[base_rid]
-        page_range = self.page_ranges[page_range_index]
+        page_range = self.bufferpool.get_page_range(page_range_index)
 
         # Create and add the new tail record.
         tail_rid = self.generate_tail_rid()
@@ -375,7 +376,7 @@ class Table:
             A list of all records in the table.
         """
         all_records = []
-        for page_range in self.page_ranges:
+        for page_range in self.total_page_ranges:
             for base_page in page_range.base_pages:
                 for record in base_page.records:
                     all_records.append(record)

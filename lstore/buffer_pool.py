@@ -96,6 +96,7 @@ class BufferPool:
         # Encode the serialized data to a string
         encoded_serialized_data = base64.b64encode(serialized_data).decode('utf-8')
         # test this ^^^^^^
+        
 
         # Construct the line to write to the file
         line_to_write = f"{encoded_serialized_data}\n"
@@ -108,6 +109,14 @@ class BufferPool:
                 file.readline()  # Read and discard lines until reaching the desired line
             # Write the data to the specified line
             file.write(line_to_write)
+           
+        #Code to test whehter it can read the data 
+        #with open(table_file_name, 'r+', encoding='utf-8') as file:
+            # Move the file cursor to the appropriate line
+           # for _ in range(3 + page_range_id):
+               # file.readline()
+               # decoded_serialized_data = base64.b64decode(serialized_data).encode('utf-8')# Read and discard lines until reaching the desired line
+                # print("decoded_line", decoded_serialized_data)
     
     def has_capacity(self):
         if (self.buffer_pool_size - len(self.buffer_pages)) <= 0:
@@ -170,4 +179,3 @@ class BufferPool:
     def set_latest_tail(self, table_name, tail_id):
         # Updates the ID of the latest tail record for a given table
         self.latest_tail[table_name] = tail_id
-

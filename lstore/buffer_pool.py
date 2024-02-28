@@ -54,9 +54,13 @@ class BufferPool:
             return None
 
     def get_page_range_from_file(self, page_range_id):
-        file_offset = 4 + page_range_id
-        serialized_page_range = linecache.getline(self.table_name, file_offset) # NOT ZERO INDEXED
-        page_range = PageRangeSerializer.deserialize_page_range(serialized_page_range)
+        file_offset = 5 + page_range_id
+        serialized_page_range = linecache.getline(self.table_name, file_offset).strip()  # Read and strip newline character
+        #print("serialized: ", serialized_page_range)
+        # Decode the base64 encoded string back to bytes
+        decoded_serialized_data = base64.b64decode(serialized_page_range.encode('utf-8'))
+        # Deserialize the page range data
+        page_range = PageRangeSerializer.deserialize_page_range(decoded_serialized_data)
         return page_range
     
         
@@ -73,11 +77,8 @@ class BufferPool:
     """Check Implementation"""
     def evict_page_range(self):
         for page_range_id, page_range in list(self.buffer_pages.items()):
-            print("should be here", page_range.pinned)
             if not page_range.is_pinned():
-                print("should be here2")
                 if page_range.is_dirty():
-                    print("should be here3")
                     self.write_page_range(page_range_id, page_range)  # Write back to disk if modified.
                     page_range.set_clean()  # Reset dirty flag after writing.
                 del self.buffer_pages[page_range_id]
@@ -85,7 +86,6 @@ class BufferPool:
         raise Exception("No unpinned pages available to evict.")
         
     def evict_all_page_ranges(self):
-        print("should be here55")
         while self.buffer_pages:
             self.evict_page_range()
 

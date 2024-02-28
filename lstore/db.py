@@ -130,7 +130,7 @@ class Database():
         table_file_name = name + ".txt"
         if os.path.exists(table_file_name):
             print("Table file already exists: {}".format(table_file_name))
-            return
+            raise FileExistsError("Table file already exists: {}".format(table_file_name)) 
         else:
             # File does not exist, create it with default data or an empty state
             print("Creating table_file:", table_file_name)

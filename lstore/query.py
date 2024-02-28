@@ -42,7 +42,6 @@ class Query:
         Returns:
             bool: True if the record was successfully inserted, False otherwise (e.g., mismatch in column count).
         """
-        schema_encoding = '0' * self.table.num_columns # What is this for
         try:
             if len(columns) != self.table.num_columns:
                 print("Error: Number of values does not match the number columns.")

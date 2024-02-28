@@ -47,8 +47,8 @@ class Table:
         # self.data = [] # Note: It seems this is not used
         self.index = None #self.read_index()
         # self.page_ranges = [] 
-        self.last_base_rid = -1  #why is this removed
-        self.last_tail_rid = -1  #why is this removed
+        # self.last_base_rid = -1  replaced with rid generator
+        # self.last_tail_rid = -1  
         self.page_directory = {} # maps RID to tuple, (What page_range, !!!NEED TO ALSO HAVE PAGE BLOCK!!!!, what record location in page)
         self.total_page_ranges = total_page_ranges
         self.rid_gen = rid_gen
@@ -78,15 +78,20 @@ class Table:
             # get page range from bufferpool
             current_page_range = self.bufferpool.get_page_range_to_insert(self.last_page_range)
             if current_page_range == None:
+                #if self.bufferpool.has_capacity():
                 current_page_range = PageRange(self.num_columns, self.name, self.total_page_ranges)
                 self.total_page_ranges +=1
                 self.last_page_range += 1
                 self.bufferpool.add_page_range(current_page_range, self.last_page_range)
+                #else:
+            #else:
+                #print("error due to this")
+
         current_page_range.addNewRecord(new_rid, *columns)
         self.page_directory[new_rid] = (self.total_page_ranges - 1, len(current_page_range.base_pages) - 1, current_page_range.base_pages[-1].last_written_offset)
 
         # Update the index for the primary key column with the new RID
-        primary_key_value = columns[self.key]
+        # primary_key_value = columns[self.key]
 
         for i in range(len(columns)):
             avl_tree = self.index.indices[i]
@@ -113,11 +118,10 @@ class Table:
         else:
             # read index return a list of AvlTree objects and pass that list
             page_directory_string = disk.read_page_directory(file_name)
-            print(page_directory_string)
+            # print(page_directory_string)
             self.page_directory = eval(page_directory_string)
 
     def evict_bufferpool(self):
-        print("should be here table")
         self.bufferpool.evict_all_page_ranges()
 
 
@@ -240,6 +244,7 @@ class Table:
         for base_rid in base_rids:
             page_range_index, page_block_index, record_index = self.page_directory[base_rid]
             returned_records = self.bufferpool.get_page_range(page_range_index).select_records(page_block_index, record_index, projected_columns_index)[:-1]
+            
             #returned_records = self.page_ranges[page_range_index].select_records(page_block_index, record_index, projected_columns_index)[:-1]
             
             selected_records.append(returned_records)
@@ -309,8 +314,8 @@ class Table:
         Returns:
             An integer representing the new RID.
         """
-        self.last_base_rid += 1
-        return self.last_base_rid
+        # self.last_base_rid += 1
+        return self.rid_gen.generate_base_rid()
     
     def generate_tail_rid(self):
         """
@@ -319,8 +324,9 @@ class Table:
         Returns:
             An integer representing the new RID.
         """
-        self.last_tail_rid += 1
-        return self.last_tail_rid
+        
+        # self.last_tail_rid += 1
+        return self.rid_gen.generate_tail_rid()
     
     
     def update_indirection(self, base_rid, new_tail_rid):

@@ -1,3 +1,4 @@
+import base64
 import msgpack
 from lstore.page_range import PageRange
 
@@ -23,12 +24,19 @@ class PageRangeSerializer:
 
     @staticmethod
     def deserialize_page_range(serialized_data):
-        unpacked_data = msgpack.unpackb(serialized_data)
+        # Decode the base64 encoded string back to bytes
+        # decoded_serialized_data = base64.b64decode(serialized_data)
+        
+        print("type of data", type(serialized_data))
+        # Unpack the bytes using msgpack
+        if not serialized_data:
+            raise ValueError("Empty serialized data")
+            
+        unpacked_data = msgpack.loads(serialized_data, raw=False)
         page_range = PageRange(
             unpacked_data["num_columns"],
             unpacked_data["table_name"],
             unpacked_data["page_range_id"]
-
         )
         page_range.base_pages_per_range = unpacked_data["base_pages_per_range"]
         page_range.base_pages = [page_range.deserialize_page_block(page_block_data) for page_block_data in unpacked_data["base_pages"]]

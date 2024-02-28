@@ -68,7 +68,7 @@ class PageRange:
         """
         if not self.base_pages[-1].has_capacity():
             # last base page full; create new base page
-            self.base_pages.append(PageBlock(self.num_columns + 3, self.bufferpool, self.table_name))
+            self.base_pages.append(PageBlock(self.num_columns + 3, self.table_name))
 
         base_page_to_write = self.base_pages[-1]
         
@@ -129,7 +129,7 @@ class PageRange:
         """
         # Check if the last tail page block has capacity
         if not self.tail_pages or not self.tail_pages[-1].has_capacity():
-            self.tail_pages.append(PageBlock(self.num_columns + 3, self.bufferpool, self.table_name))
+            self.tail_pages.append(PageBlock(self.num_columns + 3, self.table_name))
         
         last_record = []
         last_rid = self.base_pages[page_block_index].column_pages[-2].read(record_index)
@@ -219,7 +219,7 @@ class PageRange:
     def add_tail_record(self, rid, updated_columns):
         if not self.tail_pages or not self.tail_pages[-1].has_capacity():
             # If not, create a new tail page block
-            self.tail_pages.append(PageBlock(self.num_columns + 3, self.bufferpool, self.table_name))
+            self.tail_pages.append(PageBlock(self.num_columns + 3, self.table_name))
         
         # Now, we are sure that the last tail page block has capacity, add the tail record
         self.tail_pages[-1].write_tail_record(rid, updated_columns)

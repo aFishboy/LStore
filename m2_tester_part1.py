@@ -2,6 +2,11 @@ from lstore.db import Database
 from lstore.query import Query
 
 from random import choice, randint, sample, seed
+import time
+
+
+start_time = time.time()
+
 
 db = Database()
 db.open('./ECS165')
@@ -82,4 +87,10 @@ for i in range(0, number_of_aggregates):
         pass
         # print('sum on [', keys[r[0]], ',', keys[r[1]], ']: ', column_sum)
 print("Aggregate finished")
+
+print("Final Time",)
 db.close()
+
+end = time.time()
+
+print("Total Time it took: ", end - start_time)

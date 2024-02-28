@@ -3,6 +3,9 @@ from lstore.query import Query
 
 from random import choice, randint, sample, seed
 
+import time
+start = time.time()
+
 db = Database()
 db.open('./aTesterFileDirectoryHere')
 # Create a table  with 5 columns
@@ -19,7 +22,7 @@ query = Query(grades_table)
 # dictionary for records to test the database: test directory
 records = {}
 
-number_of_records = 100
+number_of_records = 1000
 number_of_aggregates = 100
 number_of_updates = 10
 
@@ -32,5 +35,72 @@ for i in range(0, number_of_records):
 keys = sorted(list(records.keys()))
 print("Insert finished")
 
+insert_time = time.time()
+print("Insert time: ", insert_time - start)
+
+# Check inserted records using select query
+for key in keys:
+    record = query.select(key, 0, [1, 1, 1, 1, 1])[0]
+    error = False
+    for i, column in enumerate(record.columns):
+        if column != records[key][i]:
+            error = True
+    if error:
+        print('select error on', key, ':', record, ', correct:', records[key])
+    else:
+        pass
+        # print('select on', key, ':', record.rid, ':', record.key, ':', record.columns)
+print("Select finished")
+
+select_time = time.time()
+print("Select time: ", select_time - insert_time)
+
+# x update on every column
+for _ in range(number_of_updates):
+    for key in keys:
+        updated_columns = [None, None, None, None, None]
+        for i in range(2, grades_table.num_columns):
+            # updated value
+            value = randint(0, 20)
+            updated_columns[i] = value
+            # copy record to check
+            original = records[key].copy()
+            # update our test directory
+            records[key][i] = value
+            query.update(key, *updated_columns)
+            record = query.select(key, 0, [1, 1, 1, 1, 1])[0]
+            error = False
+            for j, column in enumerate(record.columns):
+                if column != records[key][j]:
+                    error = True
+            if error:
+                print('update error on', original, 'and', updated_columns, ':', record, ', correct:', records[key])
+            else:
+                pass
+                # print('update on', original, 'and', updated_columns, ':', record)
+            updated_columns[i] = None
+print("Update finished")
+
+update_time = time.time()
+print("Update time: ", update_time - select_time)
+
+for i in range(0, number_of_aggregates):
+    r = sorted(sample(range(0, len(keys)), 2))
+    column_sum = sum(map(lambda key: records[key][0], keys[r[0]: r[1] + 1]))
+    result = query.sum(keys[r[0]], keys[r[1]], 0)
+    if column_sum != result:
+        print('sum error on [', keys[r[0]], ',', keys[r[1]], ']: ', result, ', correct: ', column_sum)
+    else:
+        pass
+        # print('sum on [', keys[r[0]], ',', keys[r[1]], ']: ', column_sum)
+print("Aggregate finished")
+
+sum_time = time.time()
+print("Sum time: ", sum_time - update_time)
+
 db.close()
 print("close")
+
+end = time.time()
+
+print("Total Time it took: ", end - start)

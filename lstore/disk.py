@@ -85,7 +85,6 @@ class Disk:
     
     def read_page_directory(self, file_name):
         line = linecache.getline(file_name, 3) # NOT ZERO INDEXED
-        print(file_name,"line", line)
         return line
         
     

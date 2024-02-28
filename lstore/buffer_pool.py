@@ -62,17 +62,6 @@ class BufferPool:
         # Deserialize the page range data
         page_range = PageRangeSerializer.deserialize_page_range(decoded_serialized_data)
         return page_range
-    
-        
-    # def construct_base_pages(self, file_start_offset):
-    #     base_pages = []
-    #     for i in range(file_start_offset, file_start_offset + 8):
-    #         base_page = []
-    #         line = linecache.getline(self.table_name, i) # NOT ZERO INDEXED
-    #         pages_data = line.split(';')
-    #         for data in pages_data:
-    #             base_page.append(Page(bytearray(data, 'utf-8')))
-    #         base_pages.append(base_page)
                 
     """Check Implementation"""
     def evict_page_range(self):
@@ -109,33 +98,16 @@ class BufferPool:
                 file.readline()  # Read and discard lines until reaching the desired line
             # Write the data to the specified line
             file.write(line_to_write)
-           
-        #Code to test whehter it can read the data 
-        #with open(table_file_name, 'r+', encoding='utf-8') as file:
-            # Move the file cursor to the appropriate line
-           # for _ in range(3 + page_range_id):
-               # file.readline()
-               # decoded_serialized_data = base64.b64decode(serialized_data).encode('utf-8')# Read and discard lines until reaching the desired line
-                # print("decoded_line", decoded_serialized_data)
     
     def has_capacity(self):
         if (self.buffer_pool_size - len(self.buffer_pages)) <= 0:
             return False
         return True
     
-    """PROBABLY NEED TO CHECK IF ALL PAGES ARE PINNED AND CANT EVICT BUT MAY NOT BECAUSE VERY UNLIKELY"""
     def evict_if_bufferpool_full(self):
         if not self.has_capacity():
             self.evict_page()
 
-
-    """         NEED TO IMPLEMENT (Tristan)     """
-    """ This section is for merging base pages and tail pages
-    Simplest way is to load a copy of all base pages in selected range into memory
-    We can add an extra column to the database, the Base RID column
-    Two copies of the base pages will be kept in memory
-    Implementation of TPS
-    Frequency of merging is up to us though"""
 
     def get_base_page_range(self, start, end):
         # Dictionary to hold the base pages loaded into memory
@@ -179,3 +151,16 @@ class BufferPool:
     def set_latest_tail(self, table_name, tail_id):
         # Updates the ID of the latest tail record for a given table
         self.latest_tail[table_name] = tail_id
+
+
+    def merge(self):
+        for page_range_id, page_range in self.buffer_pages.items():
+            base_page = page_range.get_base_page()
+            if page_range.has_tail_pages():
+                for tail_page in page_range.get_tail_pages():
+                    if base_page:
+                        self.merge_tail_into_base(tail_page, base_page)
+    
+    def merge_tail_into_base(tail_page, base_page):
+        for records in tail_page.records():
+            base_page.add_record(records)

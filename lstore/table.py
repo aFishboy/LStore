@@ -389,7 +389,7 @@ class Table:
         return all_records
     
     def merge(self):
-        pass
+        self.bufferpool.merge()
 
     
  

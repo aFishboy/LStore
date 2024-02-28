@@ -32,14 +32,12 @@ class Database():
         files = os.listdir(os.getcwd())  # Get a list of all files and directories in the current directory
         for file_to_open in files:
             if file_to_open == "data_base_rid_data.txt":
-                print("not valid table file")
                 continue
             with open(file_to_open, 'r') as opened_file:
                 first_row = opened_file.readline().strip()
                 if not first_row:  # Check if the first line is empty
                     raise ValueError(f"The first line of the file '{file_to_open}' is empty.")
                 else:
-                    print("found valid table")
                     elements = first_row.split(';')
                     if len(elements) != 5:
                         raise ValueError(f"Invalid format in the first line of the file '{file_to_open}'.")

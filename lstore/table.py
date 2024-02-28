@@ -359,13 +359,13 @@ class Table:
             True if the tail record was successfully added, False otherwise.
         """
         # Locate the base record and its page range.
-        print(f"Type of base_rid: {type(base_rid)}, Value: {base_rid}")
+        # print(f"Type of base_rid: {type(base_rid)}, Value: {base_rid}")
         page_range_index, _ = self.page_directory[base_rid]
         page_range = self.bufferpool.get_page_range(page_range_index)
 
         # Create and add the new tail record.
         tail_rid = self.generate_tail_rid()
-        print(f"Type of new_tail_rid: {type(tail_rid)}, Value: {tail_rid}")
+        # print(f"Type of new_tail_rid: {type(tail_rid)}, Value: {tail_rid}")
         success = page_range.add_tail_record(tail_rid, updated_columns)
         if not success:
             return False
@@ -388,8 +388,7 @@ class Table:
                     all_records.append(record)
         return all_records
     
-    def __merge(self):
-        #print("merge is happening")
+    def merge(self):
         pass
 
     

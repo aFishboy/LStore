@@ -27,12 +27,11 @@ class PageRangeSerializer:
         # Decode the base64 encoded string back to bytes
         # decoded_serialized_data = base64.b64decode(serialized_data)
         
-        print("type of data", type(serialized_data))
         # Unpack the bytes using msgpack
         if not serialized_data:
             raise ValueError("Empty serialized data")
             
-        unpacked_data = msgpack.loads(serialized_data, raw=False)
+        unpacked_data = msgpack.loads(serialized_data, strict_map_key=False)
         page_range = PageRange(
             unpacked_data["num_columns"],
             unpacked_data["table_name"],

@@ -3,7 +3,9 @@
         "avls",
         "avltree",
         "BUFFERPOOL",
-        "lstore"
+        "lstore",
+        "msgpack",
+        "packb"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,

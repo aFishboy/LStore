@@ -1,9 +1,11 @@
+import base64
 import csv
 import linecache
 import re
 import zlib
 import os
 from lstore.page import Page
+from lstore.page_range import PageRange
 from lstore.table import Table
 from avltree import AvlTree
 
@@ -42,22 +44,14 @@ class Disk:
         return file_name_to_return
     
     def write_table_metadata(self, table):
-        table_file_name = table.name
-        print("disk table name", table_file_name)
-        num_columns = table.num_columns 
-        key_index = table.key
-        file_metadata = f"{table_file_name},{num_columns},{key_index}".ljust(50)
-        file_metadata = file_metadata + '\n' + str(table.index)
-        file_metadata = file_metadata + '\n' + str(table.page_directory)
 
-        with open(table_file_name, 'r+') as file:
-            # Move the file pointer to the beginning
-            file.seek(0)
-            buffer = file.read(50)
-            file.seek(0)
-            # Write the modified first line
-            file.write(file_metadata)
-            # Truncate the remaining content (in case the new line is shorter than the old one)
+        # Write the metadata and serialized data to the file
+        table_file_name = table.name
+        with open(table_file_name, 'w', encoding='utf-8') as file:
+            # Write metadata to the first line
+            file.write(f"{table_file_name};{table.num_columns};{table.key};{table.total_page_ranges};{table.last_page_range}\n")
+            file.write(str(table.index) + '\n')
+            file.write(str(table.page_directory) + '\n\n')
     
     def get_rid_data(self):
         with open("data_base_rid_data.txt", 'a+', newline='') as file:
@@ -78,7 +72,6 @@ class Disk:
     def read_index(self, file_name, num_columns):
         line = linecache.getline(file_name, 2) # NOT ZERO INDEXED
         if line == "":
-            print("made it")
             list_of_avls = [AvlTree() for _ in range(num_columns)]
             return list_of_avls
         list_of_strings = self.extract_data_from_string(line)
@@ -92,6 +85,7 @@ class Disk:
     
     def read_page_directory(self, file_name):
         line = linecache.getline(file_name, 3) # NOT ZERO INDEXED
+        print(file_name,"line", line)
         return line
         
     

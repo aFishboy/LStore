@@ -1,8 +1,11 @@
+import struct
 from .page import Page
 from .config import *
+import msgpack
 
 class PageBlock: 
-    def __init__(self, num_columns, bufferpool, table_name) -> None:
+    def __init__(self, num_columns, table_name) -> None:
+        self.table_name = table_name
         self.num_columns = num_columns
         self.column_pages = [Page() for _ in range(self.num_columns)]
         self.records_in_page = 0 # might not need
@@ -11,8 +14,6 @@ class PageBlock:
         self.MAX_RECORDS_PER_PAGE = PAGE_DATA_SIZE // COLUMN_DATA_SIZE # 4096 / 8 = 512
         self.bitmap = [0] * self.MAX_RECORDS_PER_PAGE #move to page block level
         self.page_ids = [self.get_page_id(c) for c in range(self.num_columns)]
-        self.bufferpool = bufferpool
-        self.table_name = table_name
 
 
     def delete(self, offset_to_delete):
@@ -26,8 +27,9 @@ class PageBlock:
     
     def write(self, *columns):
         # add the record values to pages
+        self.last_written_offset = self.column_pages[0].current_offset()
         for i in range(self.num_columns):
-            self.bufferpool.write_value(self.page_ids[i], columns[i])
+            self.column_pages[i].write(columns[i])
 
             #self.column_pages[i].increment_record_count() # may need to be on the outside of for loop and only happen once idk
     
@@ -66,3 +68,19 @@ class PageBlock:
         return page_id
 
     
+    def serialize_page(self, page):
+        serialized_data = msgpack.packb({
+            "num_records": page.num_records,
+            "MAX_RECORDS_PER_PAGE": page.MAX_RECORDS_PER_PAGE,
+            "bitmap": page.bitmap,
+            "data": page.data
+        })
+        return serialized_data
+
+    def deserialize_page(self, serialized_data):
+        unpacked_data = msgpack.unpackb(serialized_data)
+        page = Page(unpacked_data["data"])
+        page.num_records = unpacked_data["num_records"]
+        page.MAX_RECORDS_PER_PAGE = unpacked_data["MAX_RECORDS_PER_PAGE"]
+        page.bitmap = unpacked_data["bitmap"]
+        return page

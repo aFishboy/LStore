@@ -7,6 +7,7 @@ from avltree import AvlTree
 
 class TestWriteAndReadFile:
     def test_writeFile(self):
+        # print(bytearray(4000))
         avl_tree = AvlTree()
         avl_tree[1] = [11,22,33]
         avl_tree[12] = [112,222,332]
@@ -23,15 +24,19 @@ class TestWriteAndReadFile:
         page_directory[789] = (237, 22, 876)
         page_directory[55] = (11434, 3425, 422)
 
-        print("pd", page_directory)
+        # print("pd", page_directory)
         testAfter = {}
         testAfter = eval("{5: (1, 2, 3), 15: (11, 12, 13)}")
         # print("after\n", str(testAfter), "\nafter")
         # print(str(page_directory))
         db = Database()
         db.open("./ECS165A")
-        db.create_table("Table1", 2, 0)
+        table1 = db.get_table("Table1")
+        print("Table1", table1)
         db.create_table("Table2", 5, 0)
+        query = Query(table1)
+        query.insert([0, 1])
+
 
         db.close()
         assert 1 == 2

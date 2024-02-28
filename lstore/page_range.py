@@ -1,5 +1,9 @@
+import struct
+import time
 from .page import Page
 from .page_block import PageBlock
+from .config import *
+import msgpack
 
 class PageRange:
     """
@@ -9,29 +13,31 @@ class PageRange:
     Attributes:
         num_columns (int): The number of columns in the table.
         base_pages_per_range (int): The maximum number of base pages within a page range.
-        num_records (int): The total number of records within the page range.
         base_pages (list): A list of PageBlocks representing the base records.
         tail_pages (list): A list of PageBlocks representing the tail (update) records.
         tail_page_directory (dict): A mapping of RID to tail page number and offset within that page.
     """
-    def __init__(self, num_columns, bufferpool, table_name) -> None:
+    def __init__(self, num_columns, table_name, page_range_id) -> None:
         """
         Initializes a new instance of the PageRange class.
 
         Parameters:
             num_columns (int): The number of columns in the table this PageRange is associated with.
         """
+        self.table_name = table_name
         self.num_columns = num_columns
+        self.page_range_id = page_range_id
         self.base_pages_per_range = 8
         self.base_pages = []
         self.tail_pages = []     
         # Create base pages with RID, indirection, and schema encoding column
-        self.base_pages.append(PageBlock(self.num_columns + 3, bufferpool, self.table_name)) 
+        self.base_pages.append(PageBlock(self.num_columns + 3, self.table_name)) 
         self.tail_page_directory = {}   # rid -> (tail page number, offset)
         # Create tail pages with RID and indirection
-        self.tail_pages.append(PageBlock(self.num_columns + 3, bufferpool, self.table_name))
-        self.bufferpool = bufferpool
-        self.table_name = table_name
+        self.tail_pages.append(PageBlock(self.num_columns + 3, self.table_name))
+        self.pinned = 0
+        self.dirty = False
+        self.timestamp = time.time()
 
     def delete(self, base_page_block_index, base_record_index):
         projected_columns_index = [1] * self.num_columns
@@ -70,10 +76,9 @@ class PageRange:
         data_to_write = list(columns)  # Convert columns tuple to a list
         data_to_write.extend([rid, 0, 0])  # Append additional values
 
-
-        
         # Write the data to the base page
         base_page_to_write.write(*data_to_write)
+        self.dirty = True
 
     def has_capacity(self):
         """
@@ -145,7 +150,9 @@ class PageRange:
         
         # Add the tail record to the latest tail page block
         self.tail_pages[-1].write(*tail_record)###########################################################since we have the bitmap need to check pages for open one may be an earlier page that had a delete
-        self.tail_page_directory[new_rid] = (len(self.tail_pages) - 1, self.tail_pages[-1].last_written_offset) ###################################################################################
+        self.tail_page_directory[new_rid] = (len(self.tail_pages) - 1, self.tail_pages[-1].last_written_offset) 
+        self.dirty = True
+
 
     
     def update_base_record_indirection(self, new_rid, block_index, record_index):
@@ -218,7 +225,61 @@ class PageRange:
         self.tail_pages[-1].write_tail_record(rid, updated_columns)
         return True
     
-    # DOES NOT WORK FULLY
+    def is_dirty(self):
+        return self.dirty
+    
+    def set_dirty(self):
+        self.dirty = True
+    
+    def set_clean(self):
+        self.dirty = False
+
+    def get_timestamp(self):
+        return self.timestamp
+    
+    def can_evict(self):
+        return self.pinned == 0
+    
+    def pin_page(self):
+        self.pinned += 1
+
+    def unpin_page(self):
+        self.pinned -= 1
+    
+    def is_pinned(self):
+        if self.pinned < 1:
+            return False
+        return True
+    
+    def serialize_page_block(self, page_block):
+        serialized_data = msgpack.packb({
+            "table_name": page_block.table_name,
+            "num_columns": page_block.num_columns,
+            "column_pages": [page_block.serialize_page(page) for page in page_block.column_pages],
+            "records_in_page": page_block.records_in_page,
+            "last_written_offset": page_block.last_written_offset,
+            "isFull": page_block.isFull,
+            "MAX_RECORDS_PER_PAGE": page_block.MAX_RECORDS_PER_PAGE,
+            "bitmap": page_block.bitmap,
+            "page_ids": page_block.page_ids,
+        })
+        return serialized_data
+
+    def deserialize_page_block(self, serialized_data):
+        unpacked_data = msgpack.unpackb(serialized_data)
+        page_block = PageBlock(
+            unpacked_data["num_columns"],
+            unpacked_data["table_name"]
+        )
+        page_block.column_pages = [page_block.deserialize_page(page_data) for page_data in unpacked_data["column_pages"]]
+        page_block.records_in_page = unpacked_data["records_in_page"]
+        page_block.last_written_offset = unpacked_data["last_written_offset"]
+        page_block.isFull = unpacked_data["isFull"]
+        page_block.MAX_RECORDS_PER_PAGE = unpacked_data["MAX_RECORDS_PER_PAGE"]
+        page_block.bitmap = unpacked_data["bitmap"]
+        page_block.page_ids = unpacked_data["page_ids"]
+        return page_block
+    
     
     
     

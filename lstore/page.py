@@ -1,15 +1,14 @@
+import struct
 import time
 from typing import Union
 from .config import *
+import msgpack
 
 class Page:
     def __init__(self, data: Union[bytearray, None] = None):
         self.num_records = 0
         self.MAX_RECORDS_PER_PAGE = PAGE_DATA_SIZE // COLUMN_DATA_SIZE # 4096 / 8 = 512
         self.bitmap = [0] * self.MAX_RECORDS_PER_PAGE #move to page block level
-        self.pinned = 0
-        self.dirty = False
-        self.timestamp = time.time()
         if data is None:
             self.data = bytearray(PAGE_DATA_SIZE) # 4096 bytes per page
         else:
@@ -73,21 +72,5 @@ class Page:
     
     def get_data(self):
         return self.data
-    
-    def is_dirty(self):
-        return self.dirt
-    
-    def set_dirty(self):
-        self.dirty = True
 
-    def get_timestamp(self):
-        return self.timestamp
     
-    def can_evict(self):
-        return self.pinned == 0
-    
-    def pin_page(self):
-        self.pinned += 1
-
-    def unpin_page(self):
-        self.pinned -= 1

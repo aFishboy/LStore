@@ -1,7 +1,10 @@
+from lstore.buffer_pool import BufferPool
 from lstore.index import Index
 from time import time
+from lstore.page_block import PageBlock
 from .page_range import PageRange
 from avltree import AvlTree
+import msgpack
 INDIRECTION_COLUMN = 0
 RID_COLUMN = 1
 TIMESTAMP_COLUMN = 2
@@ -29,7 +32,7 @@ class Table:
     """
     Represents a table within a database, capable of performing operations such as insert, read, update, and delete on records.
     """
-    def __init__(self, name, num_columns, key):
+    def __init__(self, name, num_columns, key, total_page_ranges, rid_gen, last_page_range, path):
         """
         Initializes the Table with basic information and structures for storing records.
 
@@ -46,9 +49,13 @@ class Table:
         # self.page_ranges = [] 
         # self.last_base_rid = -1
         # self.last_tail_rid = -1
-        self.page_directory = {} # maps RID to tuple, (What page_range, !!!NEED TO ALSO HAVE PAGE BLOCK!!!!, what record location in page) 
+        self.page_directory = {} # maps RID to tuple, (What page_range, !!!NEED TO ALSO HAVE PAGE BLOCK!!!!, what record location in page)
+        self.total_page_ranges = total_page_ranges
+        self.rid_gen = rid_gen
         # Tracks the location of records within page ranges.
-        # self.bufferpool = bufferpool
+        self.last_page_range = last_page_range
+        self.path = path
+        self.bufferpool = BufferPool(self.path, self.name, self.num_columns, self.last_page_range, self.total_page_ranges)
 
     def __str__(self):
         return f"Table: {self.name}, Columns: {self.num_columns}, Primary Key Index: {self.key}"
@@ -60,21 +67,23 @@ class Table:
         Parameters:
             *columns: Variable length argument list for column values of the new record.
         """
-        total_page_ranges = len(self.page_ranges)
-        new_rid = self.generate_base_rid()
-
-        # Check if there is an existing page range with capacity or create a new one
-        if total_page_ranges == 0 or not self.page_ranges[-1].has_capacity():
-            self.page_ranges.append(PageRange(self.num_columns, self.bufferpool, self.name))
-            total_page_ranges += 1
-
-        # Add the new record to the last page range
-        self.page_ranges[-1].addNewRecord(new_rid, *columns)#########################################################################since we have the bitmap need to check pages for open one may be an earlier page that had a delete
-        # current_page_range = self.bufferpool.get_page_range() *********************************************************************
-
-        # Update the page directory with the new record's location
-        self.page_directory[new_rid] = (total_page_ranges - 1, len(self.page_ranges[-1].base_pages) - 1, self.page_ranges[-1].base_pages[-1].last_written_offset)################################################
-###########################################################################################herreeeeeeeeeee
+        new_rid = self.rid_gen.generate_base_rid()
+        if self.last_page_range == -1:
+            # create new page range
+            current_page_range = PageRange(self.num_columns, self.name, self.total_page_ranges)
+            self.total_page_ranges +=1
+            self.last_page_range += 1
+            self.bufferpool.add_page_range(current_page_range, self.last_page_range)
+        else:
+            # get page range from bufferpool
+            current_page_range = self.bufferpool.get_page_range_to_insert(self.last_page_range)
+            if current_page_range == None:
+                current_page_range = PageRange(self.num_columns, self.name, self.total_page_ranges)
+                self.total_page_ranges +=1
+                self.last_page_range += 1
+                self.bufferpool.add_page_range(current_page_range, self.last_page_range)
+        current_page_range.addNewRecord(new_rid, *columns)
+        self.page_directory[new_rid] = (self.total_page_ranges - 1, len(current_page_range.base_pages) - 1, current_page_range.base_pages[-1].last_written_offset)
 
         # Update the index for the primary key column with the new RID
         primary_key_value = columns[self.key]
@@ -90,13 +99,10 @@ class Table:
     
     def read_index(self, file_name, disk):
         # read index return a list of AvlTree objects and pass that list
-        print("index",self.index)
         if file_name == None:
             list_of_AvlTrees = [AvlTree() for _ in range(self.num_columns)]
-            print("list_of_AvlTrees",list_of_AvlTrees)
         else:
             list_of_AvlTrees = disk.read_index(file_name, self.num_columns)
-            print("list",list_of_AvlTrees)
         self.index = Index(self, list_of_AvlTrees)
 
 
@@ -107,7 +113,12 @@ class Table:
         else:
             # read index return a list of AvlTree objects and pass that list
             page_directory_string = disk.read_page_directory(file_name)
+            print(page_directory_string)
             self.page_directory = eval(page_directory_string)
+
+    def evict_bufferpool(self):
+        print("should be here table")
+        self.bufferpool.evict_all_page_ranges()
 
 
 
@@ -373,4 +384,6 @@ class Table:
     def __merge(self):
         #print("merge is happening")
         pass
+
+    
  

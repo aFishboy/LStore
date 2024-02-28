@@ -40,18 +40,20 @@ class Database():
                     raise ValueError(f"The first line of the file '{file_to_open}' is empty.")
                 else:
                     print("found valid table")
-                    elements = first_row.split(',')
-                    if len(elements) != 3:
+                    elements = first_row.split(';')
+                    if len(elements) != 5:
                         raise ValueError(f"Invalid format in the first line of the file '{file_to_open}'.")
-                    table_name, num_columns, key_index = elements
-                    self.tables.append(Table(table_name, int(num_columns), int(key_index)))
+                    table_name, num_columns, key_index, total_page_ranges, last_page_range = elements
+                    # page_range_bitmap
+                    # open_page_ranges_bitmap_list = eval(page_range_bitmap)
+                    self.tables.append(Table(table_name, int(num_columns), int(key_index), int(total_page_ranges), self.rid_gen, last_page_range, self.path))
                     self.tables[-1].read_index(file_to_open, self.disk) 
-                    self.tables[-1].read_page_directory(file_to_open, self.disk) 
+                    self.tables[-1].read_page_directory(file_to_open, self.disk)
+
 
                     # prob pass in opened_file^^^^^^^^ instead of reader ^^^^^^^^^^^^^^^^^^^^^^^^
 
-        for table in self.tables:
-            print(str(table))
+        
                 
 
 
@@ -112,9 +114,9 @@ class Database():
         self.rid_gen.store_rid_data(self.disk)
         for table in self.tables:
             self.disk.write_table_metadata(table)
-
+            table.evict_bufferpool()
+            
         
-
 
     """
     # Creates a new table
@@ -127,7 +129,6 @@ class Database():
 
         table_file_name = name + ".txt"
         if os.path.exists(table_file_name):
-            print("table_file exists:", table_file_name)
             print("Table file already exists: {}".format(table_file_name))
             return
         else:
@@ -135,7 +136,7 @@ class Database():
             print("Creating table_file:", table_file_name)
             with open(table_file_name, 'w') as file:
                 pass
-            self.tables.append(Table(table_file_name, num_columns, key_index))
+            self.tables.append(Table(table_file_name, num_columns, key_index, 0, self.rid_gen, -1, self.path))
             print("table_file created.")
         self.tables[-1].read_index(None, self.disk) 
         self.tables[-1].read_page_directory(None, self.disk) 
@@ -159,7 +160,8 @@ class Database():
     # searches through self.tables to find the specified table
     
     def get_table(self, name):
+        adjusted_name = name + ".txt"
         for table in self.tables:
-            if table.name == name:
+            if table.name == adjusted_name:
                 return table
         return None # should probably have some error handling added later here or at the function calling it

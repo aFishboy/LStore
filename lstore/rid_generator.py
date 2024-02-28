@@ -6,13 +6,13 @@ from lstore.page import Page
 class RidGen():
     def __init__(self, disk):
         self.last_base_rid, self.last_tail_rid = disk.get_rid_data()
-        print(self.last_base_rid, self.last_tail_rid)
+        # print(self.last_base_rid, self.last_tail_rid)
     
-    def get_next_base_rid(self):
+    def generate_base_rid(self):
         self.last_base_rid += 1
         return self.last_base_rid
 
-    def get_next_tail_rid(self):
+    def generate_tail_rid(self):
         self.last_tail_rid += 1
         return self.last_tail_rid
     

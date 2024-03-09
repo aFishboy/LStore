@@ -33,6 +33,7 @@ class BufferPool:
         self.buffer_pages[page_range_id] = current_page_range
     
     def get_page_range(self, page_range_id):
+        # print("get page range!!!!!!!!!!!!!!!!!!!!!!!!!")
         if page_range_id in self.buffer_pages:
             return self.buffer_pages[page_range_id]
         if self.total_page_ranges - 1 < page_range_id:
@@ -54,14 +55,25 @@ class BufferPool:
             return None
 
     def get_page_range_from_file(self, page_range_id):
-        file_offset = 5 + page_range_id
-        serialized_page_range = linecache.getline(self.table_name, file_offset).strip()  # Read and strip newline character
-        #print("serialized: ", serialized_page_range)
+        # print("page range id:", page_range_id)
+        file_offset = 5 + page_range_id  # Check if this offset calculation is correct
+        # try:
+        table_file_page_range_name = "page_range_" + str(page_range_id) + "_" + self.table_name
+        # print("table_file_page_range_name", table_file_page_range_name)
+        with open(table_file_page_range_name, 'rb') as file:  # Open the file in binary mode
+            serialized_page_range = file.read()  # Read the entire contents of the file
+
+        # print("serialized:", serialized_page_range, file_offset)
         # Decode the base64 encoded string back to bytes
-        decoded_serialized_data = base64.b64decode(serialized_page_range.encode('utf-8'))
+        # decoded_serialized_data = base64.b64decode(serialized_page_range)
         # Deserialize the page range data
-        page_range = PageRangeSerializer.deserialize_page_range(decoded_serialized_data)
+        page_range = PageRangeSerializer.deserialize_page_range(serialized_page_range)
         return page_range
+        # except Exception as e:
+        #     print("Error get page range from file:", e)
+        #     return None  # Return None or raise a specific exception depending on your error handling strategy
+
+
                 
     """Check Implementation"""
     def evict_page_range(self):
@@ -81,23 +93,25 @@ class BufferPool:
     def write_page_range(self, page_range_id, page_range):
         # Serialize the page range data
         serialized_data = PageRangeSerializer.serialize_page_range(page_range)
-
+        # print("page range write to file", page_range)
         # Encode the serialized data to a string
-        encoded_serialized_data = base64.b64encode(serialized_data).decode('utf-8')
-        # test this ^^^^^^
+        # encoded_serialized_data = base64.b64encode(serialized_data).decode('utf-8')
+        # # test this ^^^^^^
         
 
-        # Construct the line to write to the file
-        line_to_write = f"{encoded_serialized_data}\n"
+        # # Construct the line to write to the file
+        # line_to_write = f"{encoded_serialized_data}\n"
 
         # Open the file and write the data to the specified line
-        table_file_name = page_range.table_name  # Assuming the file name is based on the table name
-        with open(table_file_name, 'r+', encoding='utf-8') as file:
-            # Move the file cursor to the appropriate line
-            for _ in range(3 + page_range_id):
-                file.readline()  # Read and discard lines until reaching the desired line
-            # Write the data to the specified line
-            file.write(line_to_write)
+        table_file_name = "page_range_" + str(page_range_id) + "_" + page_range.table_name # Assuming the file name is based on the table name
+        with open(table_file_name, 'wb') as file:
+            file.write(serialized_data)
+        # with open(table_file_name, 'r+', encoding='utf-8') as file:
+        #     # Move the file cursor to the appropriate line
+        #     # for _ in range(3 + page_range_id):
+        #     #     file.readline()  # Read and discard lines until reaching the desired line
+        #     # # Write the data to the specified line
+        #     file.write(line_to_write)
     
     def has_capacity(self):
         if (self.buffer_pool_size - len(self.buffer_pages)) <= 0:

@@ -30,7 +30,7 @@ class PageRangeSerializer:
         # Unpack the bytes using msgpack
         if not serialized_data:
             raise ValueError("Empty serialized data")
-            
+        print("ser length", len(serialized_data))
         unpacked_data = msgpack.loads(serialized_data, strict_map_key=False)
         page_range = PageRange(
             unpacked_data["num_columns"],

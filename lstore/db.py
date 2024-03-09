@@ -31,7 +31,7 @@ class Database():
         self.rid_gen = RidGen(self.disk)
         files = os.listdir(os.getcwd())  # Get a list of all files and directories in the current directory
         for file_to_open in files:
-            if file_to_open == "data_base_rid_data.txt":
+            if file_to_open == "data_base_rid_data.txt" or file_to_open.startswith("page_range"):
                 continue
             with open(file_to_open, 'r') as opened_file:
                 first_row = opened_file.readline().strip()
@@ -42,6 +42,7 @@ class Database():
                     if len(elements) != 5:
                         raise ValueError(f"Invalid format in the first line of the file '{file_to_open}'.")
                     table_name, num_columns, key_index, total_page_ranges, last_page_range = elements
+                    print("metadata",table_name, num_columns, key_index, total_page_ranges, last_page_range)
                     # page_range_bitmap
                     # open_page_ranges_bitmap_list = eval(page_range_bitmap)
                     self.tables.append(Table(table_name, int(num_columns), int(key_index), int(total_page_ranges), self.rid_gen, last_page_range, self.path))

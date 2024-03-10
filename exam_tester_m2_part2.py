@@ -15,7 +15,7 @@ query = Query(grades_table)
 # dictionary for records to test the database: test directory
 records = {}
 
-number_of_records = 1000
+number_of_records = 5000
 number_of_aggregates = 100
 number_of_updates = 1
 

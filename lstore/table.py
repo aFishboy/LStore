@@ -56,6 +56,7 @@ class Table:
         self.last_page_range = last_page_range
         self.path = path
         self.bufferpool = BufferPool(self.path, self.name, self.num_columns, self.last_page_range, self.total_page_ranges)
+        self.index_columns = [key]
 
     def __str__(self):
         return f"Table: {self.name}, Columns: {self.num_columns}, Primary Key Index: {self.key}"
@@ -94,6 +95,8 @@ class Table:
         # primary_key_value = columns[self.key]
 
         for i in range(len(columns)):
+            if i not in self.index_columns:
+                continue
             avl_tree = self.index.indices[i]
             if columns[i] in avl_tree:
                 previous_rids = avl_tree[columns[i]]
@@ -152,7 +155,7 @@ class Table:
         projected_columns_index = [1] * self.num_columns
         old_record_entries_to_remove = self.select_records(primary_key, self.key, projected_columns_index)[0].columns
         for i, value in enumerate(columns):
-            if value != None:
+            if value != None and i in self.index_columns:
                 avl_tree = self.index.indices[i]
                 previous_rids = avl_tree[old_record_entries_to_remove[i]]
                 previous_rids.remove(base_rid)
@@ -166,6 +169,8 @@ class Table:
         new_rid = self.generate_tail_rid()
         self.bufferpool.get_page_range(page_range_index).updateRecord(page_block_index, record_index, new_rid, *columns)
         for i in range(len(columns)):
+            if i not in self.index_columns:
+                continue
             avl_tree = self.index.indices[i]
             if columns[i] != None:
                 if columns[i] in avl_tree:
@@ -272,6 +277,8 @@ class Table:
 
         # go to each avl index tree and remove rid associated with each key
         for i in range(self.num_columns):
+            if i not in self.index_columns:
+                continue
             avl_tree = self.index.indices[i]
             previous_rids = avl_tree[record_to_delete[i]]
             previous_rids.remove(base_rid)
@@ -306,6 +313,13 @@ class Table:
             return locked_records[key]
         else:
             return False  # Default assumption: record is not locked if not found in the dictionary
+
+    def create_index(self, index_column_to_create):
+        if index_column_to_create in self.index_columns:
+            raise ValueError("Error: Cannot create duplicate index.")
+        self.index_columns.append(index_column_to_create)
+
+
 
     def generate_base_rid(self):
         """

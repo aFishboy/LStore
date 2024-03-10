@@ -19,6 +19,9 @@ class Index:
     # returns the location of all records with the given value on column "column"
     """
 
+    def create_index(self, index_column_to_create):
+        self.table.create_index(index_column_to_create)
+
     def locate(self, column, value):
         """
         Returns the location of all records with the given value on column "column".
@@ -49,37 +52,37 @@ class Index:
     Create index on specific column
     """
 
-    def create_index(self, column_number):
-        """
-        Creates an AVL Tree index for the specified column.
+    # def create_index(self, column_number):
+    #     """
+    #     Creates an AVL Tree index for the specified column.
         
-        Args:
-            column_number (int): The column number for which the index is to be created.
-        """
-        index = AvlTree()  # Initialize an AVL Tree for indexing
+    #     Args:
+    #         column_number (int): The column number for which the index is to be created.
+    #     """
+    #     index = AvlTree()  # Initialize an AVL Tree for indexing
 
-        # Retrieve all paths for base pages
-        base_paths = self.get_base_paths()
+    #     # Retrieve all paths for base pages
+    #     base_paths = self.get_base_paths()
 
-        # Iterate through each base page and process records
-        for path in base_paths:
-            base_page = self.get_page(path)  # Load the base page
+    #     # Iterate through each base page and process records
+    #     for path in base_paths:
+    #         base_page = self.get_page(path)  # Load the base page
             
-            for rec_ind in range(base_page.num_records):
-                # Determine the value to be indexed and its location
-                value, location = self.get_value_and_location(rec_ind, base_page, column_number)
+    #         for rec_ind in range(base_page.num_records):
+    #             # Determine the value to be indexed and its location
+    #             value, location = self.get_value_and_location(rec_ind, base_page, column_number)
                 
-                if value is not None:
-                    # Update the AVL Tree index
-                    if value in index:  # Check if the value already exists
-                        current_locations = index[value]
-                        current_locations.append(location)
-                        index[value] = current_locations  # Re-insert to update the list
-                    else:
-                        index[value] = [location]  # Insert new entry
+    #             if value is not None:
+    #                 # Update the AVL Tree index
+    #                 if value in index:  # Check if the value already exists
+    #                     current_locations = index[value]
+    #                     current_locations.append(location)
+    #                     index[value] = current_locations  # Re-insert to update the list
+    #                 else:
+    #                     index[value] = [location]  # Insert new entry
 
-        # Once completed, update the index in the main table structure
-        self.table.index.indices[column_number] = index
+    #     # Once completed, update the index in the main table structure
+    #     self.table.index.indices[column_number] = index
 
     def get_value_and_location(self, rec_ind, base_page, column_number):
         """

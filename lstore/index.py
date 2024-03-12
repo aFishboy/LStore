@@ -26,16 +26,12 @@ class Index:
         """
         Returns the location of all records with the given value on column "column".
         """
-        # if column != self.key:
-        #     print("Lookup on non-primary key columns not supported in this context.")
-        #     return None
         avl_tree = self.indices[column]
         try:
             value = avl_tree[value]
             return value
         except KeyError:
-            print("key error")
-            return None
+            return []
 
 
     def locate_range(self, begin, end, column):

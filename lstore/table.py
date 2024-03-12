@@ -141,11 +141,11 @@ class Table:
         
         Note: This method requires thorough testing and validation to ensure correct functionality.
         """
-        # self.index.
-        base_rid = self.index.locate(self.key, primary_key)[0]
-        if base_rid is None:
-            print("\n\nhere!!!!!!!!!!!!!!!!")
-            return []
+        base_rid_list = self.index.locate(self.key, primary_key)
+        if len(base_rid_list) == 0:
+            return base_rid_list
+        
+        base_rid = base_rid_list[0]
         
         # Retrieve the page range and record index from the page directory using the located RID
         page_range_index, page_block_index, record_index = self.page_directory[base_rid]

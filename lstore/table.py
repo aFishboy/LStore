@@ -144,8 +144,8 @@ class Table:
         # self.index.
         base_rid = self.index.locate(self.key, primary_key)[0]
         if base_rid is None:
-            print("Record with primary key not found.")
-            return False
+            print("\n\nhere!!!!!!!!!!!!!!!!")
+            return []
         
         # Retrieve the page range and record index from the page directory using the located RID
         page_range_index, page_block_index, record_index = self.page_directory[base_rid]
@@ -240,15 +240,17 @@ class Table:
         Returns:
             A list of Record objects containing the data for each selected record.
         """
+        if search_key_column not in self.index_columns:
+            return []
+        
         base_rids = self.index.locate(search_key_column, search_key)
         if base_rids == None:
-            return None
+            return []
         selected_records = []
         for base_rid in base_rids:
             page_range_index, page_block_index, record_index = self.page_directory[base_rid]
             returned_records = self.bufferpool.get_page_range(page_range_index).select_records(page_block_index, record_index, projected_columns_index)[:-1]
             
-            #returned_records = self.page_ranges[page_range_index].select_records(page_block_index, record_index, projected_columns_index)[:-1]
             
             selected_records.append(returned_records)
 
@@ -317,6 +319,31 @@ class Table:
             raise ValueError("Error: Cannot create duplicate index.")
         self.index_columns.append(index_column_to_create)
 
+        found_rids = set()
+        key_avl_tree = self.index.indices[self.key]
+        projected_columns_index = [0] * self.num_columns
+        projected_columns_index[index_column_to_create] = 1
+        new_avl_tree = self.index.indices[index_column_to_create]
+        for rid_list in key_avl_tree.values():
+            for rid in rid_list:
+                if rid not in found_rids:
+                    found_rids.add(rid)
+                    page_range_index, page_block_index, record_index = self.page_directory[rid]
+                    returned_val = self.bufferpool.get_page_range(page_range_index).select_records(page_block_index, record_index, projected_columns_index)[0]
+
+                    if returned_val in new_avl_tree:
+                        previous_rids = new_avl_tree[returned_val]
+                    else:
+                        previous_rids = []  
+                    previous_rids.append(rid)
+                    new_avl_tree[returned_val] = previous_rids
+
+    def drop_index(self, index_column_to_drop):
+        pass
+        # if index_column_to_drop in self.index_columns:
+        #     self.index_columns.remove(index_column_to_drop)
+        #     self.index.indices[index_column_to_drop] = AvlTree()
+                    
 
 
     def generate_base_rid(self):

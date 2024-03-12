@@ -5,7 +5,10 @@ from lstore.page import Page
 
 class RidGen():
     def __init__(self, disk):
-        self.last_base_rid, self.last_tail_rid = disk.get_rid_data()
+        if disk == None:
+            self.last_base_rid, self.last_tail_rid = -1, 0
+        else:
+            self.last_base_rid, self.last_tail_rid = disk.get_rid_data()
         # print(self.last_base_rid, self.last_tail_rid)
     
     def generate_base_rid(self):

@@ -32,7 +32,7 @@ class Table:
     """
     Represents a table within a database, capable of performing operations such as insert, read, update, and delete on records.
     """
-    def __init__(self, name, num_columns, key, total_page_ranges, rid_gen, last_page_range, path):
+    def __init__(self, name, num_columns, key, total_page_ranges, rid_gen, last_page_range, path, base_path):
         """
         Initializes the Table with basic information and structures for storing records.
 
@@ -44,18 +44,15 @@ class Table:
         self.name = name
         self.num_columns = num_columns
         self.key = key
-        # self.data = [] # Note: It seems this is not used
-        self.index = None #self.read_index()
-        # self.page_ranges = [] 
-        # self.last_base_rid = -1  replaced with rid generator
-        # self.last_tail_rid = -1  
+        self.index = None #self.read_index() 
         self.page_directory = {} # maps RID to tuple, (What page_range, !!!NEED TO ALSO HAVE PAGE BLOCK!!!!, what record location in page)
         self.total_page_ranges = total_page_ranges
         self.rid_gen = rid_gen
         # Tracks the location of records within page ranges.
         self.last_page_range = last_page_range
         self.path = path
-        self.bufferpool = BufferPool(self.path, self.name, self.num_columns, self.last_page_range, self.total_page_ranges)
+        self.base_path = base_path
+        self.bufferpool = BufferPool(self.path, self.name, self.num_columns, self.last_page_range, self.total_page_ranges, self.base_path)
         self.index_columns = [key]
 
     def __str__(self):
@@ -71,6 +68,7 @@ class Table:
         new_rid = self.rid_gen.generate_base_rid()
         if self.last_page_range == -1:
             # create new page range
+
             current_page_range = PageRange(self.num_columns, self.name, self.total_page_ranges)
             self.total_page_ranges +=1
             self.last_page_range += 1

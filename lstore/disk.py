@@ -12,13 +12,15 @@ from avltree import AvlTree
 
 
 class Disk:
-    def __init__(self, path) -> None:
+    def __init__(self, path, base_path) -> None:
         if len(path) > 0 and path[-1] == "/":
             self.path = path[:-1]
         else:
             self.path = path
+        self.base_path = base_path
     
     def get_page(self, page_id):
+        os.chdir(self.path)
         file_name = self.make_file_name(page_id)
         while True:
             with open(file_name, "rb") as file:
@@ -26,14 +28,18 @@ class Disk:
             if len(compressed_data) != 0:
                 break
         uncompressed_data = zlib.decompress(compressed_data)
+        os.chdir(self.base_path)
         return Page(bytearray(uncompressed_data))
     
     def write_page(self, page_id, page_to_write):
+        os.chdir(self.path)
         file_name = self.make_file_name(page_id)
         data = page_to_write.get_data()
         compressed_data = zlib.compress(data)
         with open(file_name, "wb") as file:
             file.write(compressed_data)
+        os.chdir(self.base_path)
+        
         
     def page_exists(self, page_id):
         file_name = self.make_file_name(page_id)
@@ -44,7 +50,7 @@ class Disk:
         return file_name_to_return
     
     def write_table_metadata(self, table):
-
+        os.chdir(self.path)
         # Write the metadata and serialized data to the file
         table_file_name = table.name
         with open(table_file_name, 'w', encoding='utf-8') as file:
@@ -52,22 +58,29 @@ class Disk:
             file.write(f"{table_file_name};{table.num_columns};{table.key};{table.total_page_ranges};{table.last_page_range}\n")
             file.write(str(table.index) + '\n')
             file.write(str(table.page_directory) + '\n\n')
-    
+        os.chdir(self.base_path)
+        
     def get_rid_data(self):
+        os.chdir(self.path)
         with open("data_base_rid_data.txt", 'a+', newline='') as file:
             reader = csv.reader(file)
             first_row = next(reader, [])  # Get the first row or an empty list if file is empty
             if not first_row:  # Check if the first row is empty
+                os.chdir(self.base_path)
                 return -1, 0
             else:
                 # Extract the values from the first row
                 last_base_rid, last_tail_rid = map(int, first_row)
+                os.chdir(self.base_path)
                 return last_base_rid, last_tail_rid
 
     def store_rid_data(self, last_base_rid, last_tail_rid):
+        os.chdir(self.path)
         with open("data_base_rid_data.txt", 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([last_base_rid, last_tail_rid])
+        os.chdir(self.base_path)
+        
     
     def read_index(self, file_name, num_columns):
         line = linecache.getline(file_name, 2) # NOT ZERO INDEXED

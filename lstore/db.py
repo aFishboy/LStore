@@ -18,17 +18,21 @@ class Database():
         self.bufferpool = None
         self.base_path = None
         self.disk = None
-        self.rid_gen = None
+        self.rid_gen = RidGen(self.disk)
         
     def open(self, path):
+        if self.base_path != None:
+            os.chdir(self.base_path)
         self.path = path
-        self.disk = Disk(path)
         if not os.path.exists(path):
             os.makedirs(path)  # Create the directory if it doesn't exist
         self.base_path = os.getcwd()
+
+        self.disk = Disk(path, self.base_path)
+        self.rid_gen = RidGen(self.disk)
+        
         os.chdir(path)
 
-        self.rid_gen = RidGen(self.disk)
         files = os.listdir(os.getcwd())  # Get a list of all files and directories in the current directory
         for file_to_open in files:
             if file_to_open == "data_base_rid_data.txt" or file_to_open.startswith("page_range"):
@@ -43,21 +47,11 @@ class Database():
                         raise ValueError(f"Invalid format in the first line of the file '{file_to_open}'.")
                     table_name, num_columns, key_index, total_page_ranges, last_page_range = elements
                     print("metadata",table_name, num_columns, key_index, total_page_ranges, last_page_range)
-                    # page_range_bitmap
-                    # open_page_ranges_bitmap_list = eval(page_range_bitmap)
-                    self.tables.append(Table(table_name, int(num_columns), int(key_index), int(total_page_ranges), self.rid_gen, last_page_range, self.path))
+                    self.tables.append(Table(table_name, int(num_columns), int(key_index), int(total_page_ranges), self.rid_gen, last_page_range, self.path, self.base_path))
                     self.tables[-1].read_index(file_to_open, self.disk) 
                     self.tables[-1].read_page_directory(file_to_open, self.disk)
+        os.chdir(self.base_path)
 
-
-                    # prob pass in opened_file^^^^^^^^ instead of reader ^^^^^^^^^^^^^^^^^^^^^^^^
-
-        
-                
-
-
-        #     if self.bufferpool is None:
-    #         self.bufferpool = BufferPool(BUFFERPOOL_SIZE, path, self.name)
 
     def read_table_names(self, path):
         table_names = []
@@ -92,19 +86,7 @@ class Database():
             file.write(packed_table_name)
             
     
-    def close(self):
-        # with open("db.csv", 'wb') as file:
-        #     for i in range(32):  # Ensure 32 table names are written
-        #         if i < len(self.table_names):
-        #             table_name = self.table_names[i]
-        #         else:
-        #             table_name = ''  # Use an empty string for empty table names
-                
-        #         # Pad the table name to 32 bytes
-        #         padded_name = table_name.ljust(32, '\0')
-        #         # Convert the padded name to bytes and write it to the file
-        #         file.write(padded_name.encode('utf-8'))
-            
+    def close(self):    
         # Ensure the buffer pool also properly flushes any remaining dirty pages and closes any open files.
         if self.bufferpool is not None:
             # self.bufferpool.close()
@@ -127,15 +109,17 @@ class Database():
     def create_table(self, name, num_columns, key_index):
 
         table_file_name = name + ".txt"
-        if os.path.exists(table_file_name):
-            print("Table file already exists: {}".format(table_file_name))
-            raise FileExistsError("Table file already exists: {}".format(table_file_name)) 
+        already_made_table = self.get_table(name)
+        if already_made_table != None:
+            return already_made_table
+            # print("Table file already exists: {}".format(table_file_name))
+            # raise FileExistsError("Table file already exists: {}".format(table_file_name)) 
         else:
             # File does not exist, create it with default data or an empty state
             print("Creating table_file:", table_file_name)
-            with open(table_file_name, 'w') as file:
-                pass
-            self.tables.append(Table(table_file_name, num_columns, key_index, 0, self.rid_gen, -1, self.path))
+            if self.base_path == None:
+                self.base_path = os.getcwd()
+            self.tables.append(Table(table_file_name, num_columns, key_index, 0, self.rid_gen, -1, self.path, self.base_path))
             print("table_file created.")
         self.tables[-1].read_index(None, self.disk) 
         self.tables[-1].read_page_directory(None, self.disk) 

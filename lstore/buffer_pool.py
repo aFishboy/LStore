@@ -7,7 +7,7 @@ from .config import *
 import msgpack
 # change to pull in page ranges not just pages 
 class BufferPool:
-    def __init__(self, path, table_name, num_columns, last_page_range, total_page_ranges):
+    def __init__(self, path, table_name, num_columns, last_page_range, total_page_ranges, base_path):
         self.buffer_pool_size = BUFFERPOOL_SIZE
         self.buffer_pages = {}  # page id -> page range object
         self.table_name = table_name
@@ -15,6 +15,7 @@ class BufferPool:
         self.num_columns = num_columns
         self.last_page_range = last_page_range
         self.path = path
+        self.base_path = base_path
     
     def write_value(self, page_range_id, value_to_write):
         current_page_range = self.get_page(page_range_id)
@@ -55,6 +56,7 @@ class BufferPool:
             return None
 
     def get_page_range_from_file(self, page_range_id):
+        os.chdir(self.path)
         # print("page range id:", page_range_id)
         file_offset = 5 + page_range_id  # Check if this offset calculation is correct
         # try:
@@ -68,6 +70,7 @@ class BufferPool:
         # decoded_serialized_data = base64.b64decode(serialized_page_range)
         # Deserialize the page range data
         page_range = PageRangeSerializer.deserialize_page_range(serialized_page_range)
+        os.chdir(self.base_path)
         return page_range
         # except Exception as e:
         #     print("Error get page range from file:", e)
@@ -91,6 +94,7 @@ class BufferPool:
             self.evict_page_range()
 
     def write_page_range(self, page_range_id, page_range):
+        os.chdir(self.path)
         # Serialize the page range data
         serialized_data = PageRangeSerializer.serialize_page_range(page_range)
         # print("page range write to file", page_range)
@@ -106,6 +110,7 @@ class BufferPool:
         table_file_name = "page_range_" + str(page_range_id) + "_" + page_range.table_name # Assuming the file name is based on the table name
         with open(table_file_name, 'wb') as file:
             file.write(serialized_data)
+        os.chdir(self.base_path)
         # with open(table_file_name, 'r+', encoding='utf-8') as file:
         #     # Move the file cursor to the appropriate line
         #     # for _ in range(3 + page_range_id):

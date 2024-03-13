@@ -96,18 +96,7 @@ class Query:
     # Assume that select will never be called on a key that doesn't exist
     """
     def select_version(self, search_key, search_key_column, projected_columns_index, relative_version):
-        selected_records = []
-
-        for record in self.records:
-            if record[search_key_column] == search_key:
-                if len(record) > relative_version:
-                    selected_record = [record[i] for i in range(len(record)) if projected_columns_index[i] == 1]
-                    selected_records.append(selected_record)
-                else:
-                    # Handle the case when relative_version exceeds the record length
-                    return False
-
-        return selected_records
+        return self.select(search_key, search_key_column, projected_columns_index)
         
 
     # The following method is marked as "DOES NOT WORK" and needs clarification or debugging:
@@ -167,19 +156,7 @@ class Query:
     # Returns False if no record exists in the given range
     """
     def sum_version(self, start_range, end_range, aggregate_column_index, relative_version):
-        summation = 0
-        for record_index in range(start_range, end_range + 1):
-            try:
-                value = self.read_version(record_index, relative_version, aggregate_column_index)
-                summation += value 
-            except IndexError:
-                continue
-        
-        if summation == 0:
-            return False 
-        else:
-            return summation
-
+        return self.sum(start_range, end_range, aggregate_column_index)
     
     """
     incremenets one column of the record

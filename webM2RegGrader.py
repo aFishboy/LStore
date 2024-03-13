@@ -242,13 +242,14 @@ try:
         record = query.select_version(key, 0, [1, 1, 1, 1, 1], -1)[0]
         error = False
         for i, column in enumerate(record.columns):
+            # print("column", column, "records[key][i]", records[key][i], column != records[key][i])
             if column != records[key][i]:
                 error = True
         if error:
-            test_error = "Select for version -1 test case failed."
+            test_error = "Select for version -1 test case failed. Error"
 
 except Exception as e:
-    test_error = "Select for version -1 test case failed."
+    test_error = "Select for version -1 test case failed. Exception"
 if test_error == "":
     m2_count += 1
     test_error = ""
@@ -264,10 +265,11 @@ try:
         record = query.select_version(key, 0, [1, 1, 1, 1, 1], -2)[0]
         error = False
         for i, column in enumerate(record.columns):
+            # print("column", column, "records[key][i]", records[key][i], column != records[key][i])
             if column != records[key][i]:
                 error = True
         if error:
-            "Select for version -2 test case failed."
+            test_error = "Select for version -2 test case failed."
 
 except Exception as e:
     test_error = "Select for version -2 test case failed."

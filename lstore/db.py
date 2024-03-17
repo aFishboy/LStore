@@ -47,7 +47,7 @@ class Database():
                         raise ValueError(f"Invalid format in the first line of the file '{file_to_open}'.")
                     table_name, num_columns, key_index, total_page_ranges, last_page_range = elements
                     # print("metadata",table_name, num_columns, key_index, total_page_ranges, last_page_range)
-                    self.tables.append(Table(table_name, int(num_columns), int(key_index), int(total_page_ranges), self.rid_gen, last_page_range, self.path, self.base_path))
+                    self.tables.append(Table(table_name, int(num_columns), int(key_index), int(total_page_ranges), self.rid_gen, int(last_page_range), self.path, self.base_path))
                     self.tables[-1].read_index(file_to_open, self.disk) 
                     self.tables[-1].read_page_directory(file_to_open, self.disk)
         os.chdir(self.base_path)

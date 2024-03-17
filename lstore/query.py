@@ -16,8 +16,6 @@ class Query:
             table (Table): The table object on which the query operations are to be executed.
         """
         self.table = table
-        pass
-
 
     def delete(self, primary_key):
         """
@@ -42,18 +40,18 @@ class Query:
         Returns:
             bool: True if the record was successfully inserted, False otherwise (e.g., mismatch in column count).
         """
-        try:
-            if len(columns) != self.table.num_columns:
-                print("Error: Number of values does not match the number columns.")
-                return False
-            self.table.insert_record(*columns)
-
-            # print("Data inserted successfully!")
-            return True
-        
-        except Exception as e:
-            print(f"Error inserting data: {e}")
+        # try:
+        if len(columns) != self.table.num_columns:
+            print("Error: Number of values does not match the number columns.")
             return False
+        self.table.insert_record(*columns)
+
+        # print("Data inserted successfully!")
+        return True
+        
+        # except Exception as e:
+        #     print(f"Error inserting data: {e}")
+        #     return False
 
     
     """

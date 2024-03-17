@@ -1,3 +1,4 @@
+import threading
 from lstore.buffer_pool import BufferPool
 from lstore.index import Index
 from time import time
@@ -54,6 +55,7 @@ class Table:
         self.base_path = base_path
         self.bufferpool = BufferPool(self.path, self.name, self.num_columns, self.last_page_range, self.total_page_ranges, self.base_path)
         self.index_columns = [key]
+        self.lock = threading.Lock()
 
     def __str__(self):
         return f"Table: {self.name}, Columns: {self.num_columns}, Primary Key Index: {self.key}"
@@ -65,6 +67,7 @@ class Table:
         Parameters:
             *columns: Variable length argument list for column values of the new record.
         """
+        # print("here!!!!!!!!!!!!!!!!!!!!!!!!!!")
         new_rid = self.rid_gen.generate_base_rid()
         if self.last_page_range == -1:
             # create new page range
@@ -75,6 +78,7 @@ class Table:
             self.bufferpool.add_page_range(current_page_range, self.last_page_range)
         else:
             # get page range from bufferpool
+            # print("self.last_page_range!!!!!!!!!!!!!!!!!!!!!!", self.last_page_range, type(self.last_page_range))
             current_page_range = self.bufferpool.get_page_range_to_insert(self.last_page_range)
             if current_page_range == None:
                 #if self.bufferpool.has_capacity():
@@ -110,6 +114,14 @@ class Table:
         else:
             list_of_AvlTrees = disk.read_index(file_name, self.num_columns)
         self.index = Index(self, list_of_AvlTrees)
+
+    def acquire_lock(self):
+        return self.lock.acquire(timeout=0)  
+        
+    def release_lock(self):
+        if self.lock.locked():
+            self.lock.release()
+
 
 
     

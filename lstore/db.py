@@ -46,8 +46,8 @@ class Database():
                     if len(elements) != 5:
                         raise ValueError(f"Invalid format in the first line of the file '{file_to_open}'.")
                     table_name, num_columns, key_index, total_page_ranges, last_page_range = elements
-                    print("metadata",table_name, num_columns, key_index, total_page_ranges, last_page_range)
-                    self.tables.append(Table(table_name, int(num_columns), int(key_index), int(total_page_ranges), self.rid_gen, last_page_range, self.path, self.base_path))
+                    # print("metadata",table_name, num_columns, key_index, total_page_ranges, last_page_range)
+                    self.tables.append(Table(table_name, int(num_columns), int(key_index), int(total_page_ranges), self.rid_gen, int(last_page_range), self.path, self.base_path))
                     self.tables[-1].read_index(file_to_open, self.disk) 
                     self.tables[-1].read_page_directory(file_to_open, self.disk)
         os.chdir(self.base_path)
@@ -67,7 +67,7 @@ class Database():
                 table_name = table_name_bytes.decode('utf-8').strip('\x00')
                 # Append the table name to the list
                 table_names.append(table_name)
-                print("read table")
+                # print("read table")
         return table_names
 
     def write_table_name(self, table_name):
@@ -116,11 +116,11 @@ class Database():
             # raise FileExistsError("Table file already exists: {}".format(table_file_name)) 
         else:
             # File does not exist, create it with default data or an empty state
-            print("Creating table_file:", table_file_name)
+            # print("Creating table_file:", table_file_name)
             if self.base_path == None:
                 self.base_path = os.getcwd()
             self.tables.append(Table(table_file_name, num_columns, key_index, 0, self.rid_gen, -1, self.path, self.base_path))
-            print("table_file created.")
+            # print("table_file created.")
         self.tables[-1].read_index(None, self.disk) 
         self.tables[-1].read_page_directory(None, self.disk) 
         return self.tables[-1]

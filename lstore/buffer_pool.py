@@ -49,7 +49,7 @@ class BufferPool:
         if last_page_range in self.buffer_pages:
              current_page_range = self.buffer_pages[last_page_range]
         else:
-            self.get_page_range_from_file(last_page_range)
+            current_page_range = self.get_page_range_from_file(last_page_range)
         if current_page_range.has_capacity():
             return current_page_range
         else:

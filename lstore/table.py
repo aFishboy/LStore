@@ -1,3 +1,4 @@
+import threading
 from lstore.buffer_pool import BufferPool
 from lstore.index import Index
 from time import time
@@ -54,6 +55,7 @@ class Table:
         self.base_path = base_path
         self.bufferpool = BufferPool(self.path, self.name, self.num_columns, self.last_page_range, self.total_page_ranges, self.base_path)
         self.index_columns = [key]
+        self.lock = threading.Lock()
 
     def __str__(self):
         return f"Table: {self.name}, Columns: {self.num_columns}, Primary Key Index: {self.key}"
@@ -65,6 +67,7 @@ class Table:
         Parameters:
             *columns: Variable length argument list for column values of the new record.
         """
+        # print("here!!!!!!!!!!!!!!!!!!!!!!!!!!")
         new_rid = self.rid_gen.generate_base_rid()
         if self.last_page_range == -1:
             # create new page range
@@ -75,6 +78,7 @@ class Table:
             self.bufferpool.add_page_range(current_page_range, self.last_page_range)
         else:
             # get page range from bufferpool
+            # print("self.last_page_range!!!!!!!!!!!!!!!!!!!!!!", self.last_page_range, type(self.last_page_range))
             current_page_range = self.bufferpool.get_page_range_to_insert(self.last_page_range)
             if current_page_range == None:
                 #if self.bufferpool.has_capacity():
@@ -111,6 +115,14 @@ class Table:
             list_of_AvlTrees = disk.read_index(file_name, self.num_columns)
         self.index = Index(self, list_of_AvlTrees)
 
+    def acquire_lock(self):
+        return self.lock.acquire(timeout=0)  
+        
+    def release_lock(self):
+        if self.lock.locked():
+            self.lock.release()
+
+
 
     
     def read_page_directory(self, file_name, disk):
@@ -141,11 +153,11 @@ class Table:
         
         Note: This method requires thorough testing and validation to ensure correct functionality.
         """
-        # self.index.
-        base_rid = self.index.locate(self.key, primary_key)[0]
-        if base_rid is None:
-            print("Record with primary key not found.")
-            return False
+        base_rid_list = self.index.locate(self.key, primary_key)
+        if len(base_rid_list) == 0:
+            return base_rid_list
+        
+        base_rid = base_rid_list[0]
         
         # Retrieve the page range and record index from the page directory using the located RID
         page_range_index, page_block_index, record_index = self.page_directory[base_rid]
@@ -240,15 +252,17 @@ class Table:
         Returns:
             A list of Record objects containing the data for each selected record.
         """
+        if search_key_column not in self.index_columns:
+            return []
+        
         base_rids = self.index.locate(search_key_column, search_key)
         if base_rids == None:
-            return None
+            return []
         selected_records = []
         for base_rid in base_rids:
             page_range_index, page_block_index, record_index = self.page_directory[base_rid]
             returned_records = self.bufferpool.get_page_range(page_range_index).select_records(page_block_index, record_index, projected_columns_index)[:-1]
             
-            #returned_records = self.page_ranges[page_range_index].select_records(page_block_index, record_index, projected_columns_index)[:-1]
             
             selected_records.append(returned_records)
 
@@ -317,6 +331,31 @@ class Table:
             raise ValueError("Error: Cannot create duplicate index.")
         self.index_columns.append(index_column_to_create)
 
+        found_rids = set()
+        key_avl_tree = self.index.indices[self.key]
+        projected_columns_index = [0] * self.num_columns
+        projected_columns_index[index_column_to_create] = 1
+        new_avl_tree = self.index.indices[index_column_to_create]
+        for rid_list in key_avl_tree.values():
+            for rid in rid_list:
+                if rid not in found_rids:
+                    found_rids.add(rid)
+                    page_range_index, page_block_index, record_index = self.page_directory[rid]
+                    returned_val = self.bufferpool.get_page_range(page_range_index).select_records(page_block_index, record_index, projected_columns_index)[0]
+
+                    if returned_val in new_avl_tree:
+                        previous_rids = new_avl_tree[returned_val]
+                    else:
+                        previous_rids = []  
+                    previous_rids.append(rid)
+                    new_avl_tree[returned_val] = previous_rids
+
+    def drop_index(self, index_column_to_drop):
+        pass
+        # if index_column_to_drop in self.index_columns:
+        #     self.index_columns.remove(index_column_to_drop)
+        #     self.index.indices[index_column_to_drop] = AvlTree()
+                    
 
 
     def generate_base_rid(self):

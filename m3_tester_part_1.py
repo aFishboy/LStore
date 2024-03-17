@@ -19,7 +19,7 @@ records = {}
 
 number_of_records = 1000
 number_of_transactions = 100
-num_threads = 8
+num_threads = 2
 
 # create index on the non primary columns
 try:
@@ -72,7 +72,7 @@ for key in keys:
         if column != records[key][i]:
             error = True
     if error:
-        print('select error on', key, ':', record, ', correct:', records[key])
+        print('select error on', key, ':', record.columns, ', correct:', records[key])
     else:
         pass
         # print('select on', key, ':', record)

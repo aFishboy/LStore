@@ -12,7 +12,7 @@ class Page:
         if data is None:
             self.data = bytearray(PAGE_DATA_SIZE) # 4096 bytes per page
         else:
-            self.data = data
+            self.data = bytearray(data)
 
     def delete(self, offset_to_delete):
         self.bitmap[offset_to_delete // 8] = 0

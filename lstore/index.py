@@ -26,15 +26,12 @@ class Index:
         """
         Returns the location of all records with the given value on column "column".
         """
-        # if column != self.key:
-        #     print("Lookup on non-primary key columns not supported in this context.")
-        #     return None
-        column_btree = self.indices[column]
+        avl_tree = self.indices[column]
         try:
-            value = column_btree[value]
+            value = avl_tree[value]
             return value
         except KeyError:
-            return None
+            return []
 
 
     def locate_range(self, begin, end, column):
@@ -47,42 +44,7 @@ class Index:
         for record_list in column_btree.values(min=begin, max=end):
             return_list.extend(record_list)
         return return_list
-    
-    """
-    Create index on specific column
-    """
 
-    # def create_index(self, column_number):
-    #     """
-    #     Creates an AVL Tree index for the specified column.
-        
-    #     Args:
-    #         column_number (int): The column number for which the index is to be created.
-    #     """
-    #     index = AvlTree()  # Initialize an AVL Tree for indexing
-
-    #     # Retrieve all paths for base pages
-    #     base_paths = self.get_base_paths()
-
-    #     # Iterate through each base page and process records
-    #     for path in base_paths:
-    #         base_page = self.get_page(path)  # Load the base page
-            
-    #         for rec_ind in range(base_page.num_records):
-    #             # Determine the value to be indexed and its location
-    #             value, location = self.get_value_and_location(rec_ind, base_page, column_number)
-                
-    #             if value is not None:
-    #                 # Update the AVL Tree index
-    #                 if value in index:  # Check if the value already exists
-    #                     current_locations = index[value]
-    #                     current_locations.append(location)
-    #                     index[value] = current_locations  # Re-insert to update the list
-    #                 else:
-    #                     index[value] = [location]  # Insert new entry
-
-    #     # Once completed, update the index in the main table structure
-    #     self.table.index.indices[column_number] = index
 
     def get_value_and_location(self, rec_ind, base_page, column_number):
         """
@@ -163,5 +125,6 @@ class Index:
     # optional: Drop index of specific column
     """
 
-    def drop_index(self, column_number):
-        pass
+    def drop_index(self, index_column_to_drop):
+        self.table.drop_index(index_column_to_drop)
+

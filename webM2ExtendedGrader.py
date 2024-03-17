@@ -101,7 +101,7 @@ records = [
 ]
 
 db = Database()
-db.open("./CT")
+db.open("./aa")
 test_table = db.create_table('test', 5, 0)
 query = Query(test_table)
 for record in records:
@@ -112,7 +112,6 @@ try:
     test_count += 1
     # select on columns with index
     test_table.index.create_index(2)
-    print("\nquery select!!!!!!!!!!!!!!!!!!!!", query.select(1, 2, [1,1,1,1,1]))
     result = reorganize_result(query.select(1, 2, [1,1,1,1,1]))
     if len(result) == 4:
         if records[0] in result and records[1] in result and records[5] in result and records[7] in result:
@@ -140,9 +139,9 @@ try:
     if len(result) == 1 and records[2] in result:
         pass
     else:
-        test_error = "Select without index and return one record test case failed."
+        test_error = "Select without index and return one record test case failed. result"
 except Exception as e:
-    test_error = "Select without index and return one record test case failed."
+    test_error = "Select without index and return one record test case failed. Exception"
 if test_error == "":
     m2_count += 1
     test_error = ""
@@ -181,9 +180,9 @@ try:
     if len(result) == 0:
         pass
     else:
-        test_error = "Select without index and return empty list test case failed."
+        test_error = "Select without index and return empty list test case failed. len"
 except Exception as e:
-    test_error = "Select without index and return empty list test case failed."
+    test_error = "Select without index and return empty list test case failed. Exception"
 if test_error == "":
     m2_count += 1
     test_error = ""
@@ -201,9 +200,9 @@ try:
     if len(result) == 0:
         pass
     else:
-        test_error = "Update on primary key that doesn't exist test case failed."
+        test_error = "Update on primary key that doesn't exist test case failed. Length"
 except Exception as e:
-    test_error = "Update on primary key that doesn't exist test case failed."
+    test_error = "Update on primary key that doesn't exist test case failed. Exception"
 if test_error == "":
     m2_count += 1
     test_error = ""
@@ -321,217 +320,217 @@ else:
     test_error = ""
 
 
-# def generte_keys():
-#     global records, number_of_records, number_of_aggregates, number_of_updates, keys
+def generte_keys():
+    global records, number_of_records, number_of_aggregates, number_of_updates, keys
     
-#     if True:
-#         records = {}
-#         seed(3562901)
+    if True:
+        records = {}
+        seed(3562901)
 
-#         for i in range(0, number_of_records):
-#             key = 92106429 + i
-#             records[key] = [key, randint(0, 20), randint(0, 20), randint(0, 20), randint(0, 20)]
+        for i in range(0, number_of_records):
+            key = 92106429 + i
+            records[key] = [key, randint(0, 20), randint(0, 20), randint(0, 20), randint(0, 20)]
 
-#         keys = sorted(records.keys())
+        keys = sorted(records.keys())
         
-#         for _ in range(number_of_updates):
-#             for key in keys:
-#                 updated_columns = [None, None, None, None, None]
-#                 # copy record to check
-#                 for i in range(1, 5):
-#                     # updated value
-#                     value = randint(0, 20)
-#                     updated_columns[i] = value
-#                     # update our test directory
-#                     records[key][i] = value
+        for _ in range(number_of_updates):
+            for key in keys:
+                updated_columns = [None, None, None, None, None]
+                # copy record to check
+                for i in range(1, 5):
+                    # updated value
+                    value = randint(0, 20)
+                    updated_columns[i] = value
+                    # update our test directory
+                    records[key][i] = value
 
-# generte_keys()
-# if True:
-#     db = Database()
-#     db.open('./M2')
-#     # Create a table  with 5 columns
-#     #   Student Id and 4 grades
-#     #   The first argument is name of the table
-#     #   The second argument is the number of columns
-#     #   The third argument is determining the which columns will be primay key
-#     #       Here the first column would be student id and primary key
-#     grades_table = db.create_table('Grades', 5, 0)
+generte_keys()
+if True:
+    db = Database()
+    db.open('./ab')
+    # Create a table  with 5 columns
+    #   Student Id and 4 grades
+    #   The first argument is name of the table
+    #   The second argument is the number of columns
+    #   The third argument is determining the which columns will be primay key
+    #       Here the first column would be student id and primary key
+    grades_table = db.create_table('Grades', 5, 0)
 
-#     # create a query class for the grades table
-#     query = Query(grades_table)
+    # create a query class for the grades table
+    query = Query(grades_table)
 
-#     # dictionary for records to test the database: test directory
-#     records = {}
+    # dictionary for records to test the database: test directory
+    records = {}
 
-#     seed(3562901)
+    seed(3562901)
 
-#     # Test case 10
-#     try:
-#         test_count += 1
-#         for i in range(0, number_of_records):
-#             key = 92106429 + i
-#             records[key] = [key, randint(0, 20), randint(0, 20), randint(0, 20), randint(0, 20)]
-#             query.insert(*records[key])
+    # Test case 10
+    try:
+        test_count += 1
+        for i in range(0, number_of_records):
+            key = 92106429 + i
+            records[key] = [key, randint(0, 20), randint(0, 20), randint(0, 20), randint(0, 20)]
+            query.insert(*records[key])
 
-#     except Exception as e:
-#         test_error = "Insert test case failed."
-#     if test_error == "":
-#         m2_count += 1
-#         test_error = ""
-#         m2_tests[f"Test {test_count}"] = "Insert finished."
-#     else:
-#         m2_tests[f"Test {test_count}"] = f"Error: {test_error}"
-#         test_error = ""
+    except Exception as e:
+        test_error = "Insert test case failed."
+    if test_error == "":
+        m2_count += 1
+        test_error = ""
+        m2_tests[f"Test {test_count}"] = "Insert finished."
+    else:
+        m2_tests[f"Test {test_count}"] = f"Error: {test_error}"
+        test_error = ""
 
-#     # Test case 11
-#     try:
-#         test_count += 1
-#         # Check inserted records using select query
-#         for key in keys:
-#             record = query.select(key, 0, [1, 1, 1, 1, 1])[0]
-#             error = False
-#             for i, column in enumerate(record.columns):
-#                 if column != records[key][i]:
-#                     error = True
-#             if error:
-#                 test_error = "Select test case failed."
-#             else:
-#                 pass
+    # Test case 11
+    try:
+        test_count += 1
+        # Check inserted records using select query
+        for key in keys:
+            record = query.select(key, 0, [1, 1, 1, 1, 1])[0]
+            error = False
+            for i, column in enumerate(record.columns):
+                if column != records[key][i]:
+                    error = True
+            if error:
+                test_error = "Select test case failed."
+            else:
+                pass
 
-#     except Exception as e:
-#         test_error = "Select test case failed."
-#     if test_error == "":
-#         m2_count += 1
-#         test_error = ""
-#         m2_tests[f"Test {test_count}"] = "Select finished."
-#     else:
-#         m2_tests[f"Test {test_count}"] = f"Error: {test_error}"
-#         test_error = ""
+    except Exception as e:
+        test_error = "Select test case failed."
+    if test_error == "":
+        m2_count += 1
+        test_error = ""
+        m2_tests[f"Test {test_count}"] = "Select finished."
+    else:
+        m2_tests[f"Test {test_count}"] = f"Error: {test_error}"
+        test_error = ""
 
-#     # Test case 12
-#     try:
-#         test_count += 1
-#         # x update on every column
-#         for _ in range(number_of_updates):
-#             for key in keys:
-#                 updated_columns = [None, None, None, None, None]
-#                 # copy record to check
-#                 original = records[key].copy()
-#                 for i in range(1, grades_table.num_columns):
-#                     # updated value
-#                     value = randint(0, 20)
-#                     updated_columns[i] = value
-#                     # update our test directory
-#                     records[key][i] = value
-#                 query.update(key, *updated_columns)
-#                 record = query.select(key, 0, [1, 1, 1, 1, 1])[0]
-#                 error = False
-#                 for j, column in enumerate(record.columns):
-#                     if column != records[key][j]:
-#                         error = True
-#                 if error:
-#                     test_error = "Update test case failed."
-#                 else:
-#                     pass
+    # Test case 12
+    try:
+        test_count += 1
+        # x update on every column
+        for _ in range(number_of_updates):
+            for key in keys:
+                updated_columns = [None, None, None, None, None]
+                # copy record to check
+                original = records[key].copy()
+                for i in range(1, grades_table.num_columns):
+                    # updated value
+                    value = randint(0, 20)
+                    updated_columns[i] = value
+                    # update our test directory
+                    records[key][i] = value
+                query.update(key, *updated_columns)
+                record = query.select(key, 0, [1, 1, 1, 1, 1])[0]
+                error = False
+                for j, column in enumerate(record.columns):
+                    if column != records[key][j]:
+                        error = True
+                if error:
+                    test_error = "Update test case failed."
+                else:
+                    pass
 
-#     except Exception as e:
-#         test_error = "Update test case failed."
-#     if test_error == "":
-#         m2_count += 1
-#         test_error = ""
-#         m2_tests[f"Test {test_count}"] = "Update finished."
-#     else:
-#         m2_tests[f"Test {test_count}"] = f"Error: {test_error}"
-#         test_error = ""
+    except Exception as e:
+        test_error = "Update test case failed."
+    if test_error == "":
+        m2_count += 1
+        test_error = ""
+        m2_tests[f"Test {test_count}"] = "Update finished."
+    else:
+        m2_tests[f"Test {test_count}"] = f"Error: {test_error}"
+        test_error = ""
 
-#     # Test case 13
-#     try:
-#         test_count += 1
-#         for i in range(0, number_of_aggregates):
-#             r = sorted(sample(range(0, len(keys)), 2))
-#             column_sum = sum(map(lambda key: records[key][0], keys[r[0]: r[1] + 1]))
-#             result = query.sum(keys[r[0]], keys[r[1]], 0)
-#             if column_sum != result:
-#                 test_error = "Aggregate test case failed."
-#             else:
-#                 pass
+    # Test case 13
+    try:
+        test_count += 1
+        for i in range(0, number_of_aggregates):
+            r = sorted(sample(range(0, len(keys)), 2))
+            column_sum = sum(map(lambda key: records[key][0], keys[r[0]: r[1] + 1]))
+            result = query.sum(keys[r[0]], keys[r[1]], 0)
+            if column_sum != result:
+                test_error = "Aggregate test case failed."
+            else:
+                pass
 
-#     except Exception as e:
-#         test_error = "Aggregate test case failed."
-#     if test_error == "":
-#         m2_count += 1
-#         test_error = ""
-#         m2_tests[f"Test {test_count}"] = "Aggregate finished."
-#     else:
-#         m2_tests[f"Test {test_count}"] = f"Error: {test_error}"
-#         test_error = ""
+    except Exception as e:
+        test_error = "Aggregate test case failed."
+    if test_error == "":
+        m2_count += 1
+        test_error = ""
+        m2_tests[f"Test {test_count}"] = "Aggregate finished."
+    else:
+        m2_tests[f"Test {test_count}"] = f"Error: {test_error}"
+        test_error = ""
 
-#     db.close()
+    db.close()
 
-# if True:
-#     db = Database()
-#     db.open('./M2')
+if True:
+    db = Database()
+    db.open('./ab')
 
-#     # Getting the existing Grades table
-#     grades_table = db.get_table('Grades')
+    # Getting the existing Grades table
+    grades_table = db.get_table('Grades')
 
-#     # create a query class for the grades table
-#     query = Query(grades_table)
+    # create a query class for the grades table
+    query = Query(grades_table)
 
-#     # dictionary for records to test the database: test directory
+    # dictionary for records to test the database: test directory
 
-#     # Test case 14
-#     try:
-#         test_count += 1
-#         # Check inserted records using select query
-#         err = False
-#         for key in keys:
-#             record = query.select(key, 0, [1, 1, 1, 1, 1])[0]
-#             error = False
-#             for i, column in enumerate(record.columns):
-#                 if column != records[key][i]:
-#                     error = True
-#             if error:
-#                 err = True
-#                 test_error = "Durability select test case failed."
-#             else:
-#                 pass
-#         if not err:
-#             pass
+    # Test case 14
+    try:
+        test_count += 1
+        # Check inserted records using select query
+        err = False
+        for key in keys:
+            record = query.select(key, 0, [1, 1, 1, 1, 1])[0]
+            error = False
+            for i, column in enumerate(record.columns):
+                if column != records[key][i]:
+                    error = True
+            if error:
+                err = True
+                test_error = "Durability select test case failed."
+            else:
+                pass
+        if not err:
+            pass
 
-#     except Exception as e:
-#         test_error = "Durability select test case failed."
-#     if test_error == "":
-#         m2_count += 1
-#         test_error = ""
-#         m2_tests[f"Test {test_count}"] = "Durability select finished."
-#     else:
-#         m2_tests[f"Test {test_count}"] = f"Error: {test_error}"
-#         test_error = ""
+    except Exception as e:
+        test_error = "Durability select test case failed."
+    if test_error == "":
+        m2_count += 1
+        test_error = ""
+        m2_tests[f"Test {test_count}"] = "Durability select finished."
+    else:
+        m2_tests[f"Test {test_count}"] = f"Error: {test_error}"
+        test_error = ""
 
-#     # Test case 15
-#     try:
-#         test_count += 1
-#         err = False
-#         for i in range(0, number_of_aggregates):
-#             r = sorted(sample(range(0, len(keys)), 2))
-#             correct_result = sum(map(lambda x: records[x][0] if x in records else 0, keys[r[0]: r[1] + 1]))
-#             sum_result = query.sum(keys[r[0]], keys[r[1]], 0)
-#             if correct_result != sum_result:
-#                 err = True
-#                 test_error = "Durability aggregate test case failed."
-#             else:
-#                 pass
+    # Test case 15
+    try:
+        test_count += 1
+        err = False
+        for i in range(0, number_of_aggregates):
+            r = sorted(sample(range(0, len(keys)), 2))
+            correct_result = sum(map(lambda x: records[x][0] if x in records else 0, keys[r[0]: r[1] + 1]))
+            sum_result = query.sum(keys[r[0]], keys[r[1]], 0)
+            if correct_result != sum_result:
+                err = True
+                test_error = "Durability aggregate test case failed."
+            else:
+                pass
 
-#     except Exception as e:
-#         test_error = "Durability aggregate test case failed."
-#     if test_error == "":
-#         m2_count += 1
-#         test_error = ""
-#         m2_tests[f"Test {test_count}"] = "Durability aggregate finished."
-#     else:
-#         m2_tests[f"Test {test_count}"] = f"Error: {test_error}"
-#         test_error = ""
+    except Exception as e:
+        test_error = "Durability aggregate test case failed."
+    if test_error == "":
+        m2_count += 1
+        test_error = ""
+        m2_tests[f"Test {test_count}"] = "Durability aggregate finished."
+    else:
+        m2_tests[f"Test {test_count}"] = f"Error: {test_error}"
+        test_error = ""
 
     db.close()       
 
